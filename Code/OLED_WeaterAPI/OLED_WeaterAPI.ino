@@ -22,6 +22,10 @@ char daysOfTheWeek[7][12] = {"Sunday" , "Monday", "Tuesday", "Wednesday", "Thurs
 String skabnr;
 String bookingstatus;
 String rentalperiod;
+String lockstatus;
+int GreenLedPin = D4;
+int BlueLedPin = D5;
+int RedLedPin = D6;
 int remaining_hours;
 int remaining_minutes;
 int endhours;
@@ -33,11 +37,18 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 void setup() {
   Serial.begin(115200);
+  lockstatus = "Locked";
   skabnr = "11";
   bookingstatus = "Booked";
-  rentalperiod = "12-17";
-  endhours = 17;
-  endminutes =0;
+  rentalperiod = "12-18:09";
+  endhours = 20;
+  endminutes = 3;
+  pinMode(GreenLedPin, OUTPUT);
+  digitalWrite(GreenLedPin, LOW);
+  pinMode(BlueLedPin, OUTPUT);
+  digitalWrite(BlueLedPin, LOW);
+  pinMode(RedLedPin, OUTPUT);
+  digitalWrite(RedLedPin, LOW);
   u8g2.begin();
   //connect to the wifi access point
   WiFi.begin(ssid, password);
@@ -109,48 +120,85 @@ void loop() {
       Serial.print(timeClient.getHours());
       Serial.print(":");
       Serial.print(timeClient.getMinutes());
-
       remaining_hours = endhours - int(timeClient.getHours());
-      remaining_minutes = abs(endminutes - 1 - (59 - int(timeClient.getMinutes())));
+      if (endminutes - int(timeClient.getMinutes()) <= 0) {
+        remaining_hours = remaining_hours - 1;
+        remaining_minutes = 60 - abs(endminutes - int(timeClient.getMinutes()));
+      }
+      else {
+        remaining_minutes = endminutes - int(timeClient.getMinutes());
+      }
+      u8g2.clearBuffer();          // clear the internal memory
+      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
       Serial.println("HER!");
       Serial.print(remaining_hours);
       Serial.print(":");
       Serial.println(remaining_minutes);
 
-
-
-      u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      u8g2.setCursor(0, 10);
-      u8g2.print(timeClient.getHours());
-      u8g2.print(":");
-      u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
-      u8g2.setCursor(80, 10);
-      u8g2.print(daysOfTheWeek[timeClient.getDay()]);
-      u8g2.setCursor(40, 20);
-      u8g2.print(desc);
-      u8g2.setCursor(0, 20);
-      u8g2.print(String(temp));
-      u8g2.print("C");
-      u8g2.setCursor(0, 30);
-      u8g2.print("Skab nr: ");
-      u8g2.print(skabnr);
-      u8g2.setCursor(0, 40);
-      u8g2.print("Status: ");
-      u8g2.print(bookingstatus);
-      u8g2.setCursor(0, 50);
-      u8g2.print("Rental period: ");
-      u8g2.print(rentalperiod);
-      u8g2.setCursor(0, 60);
-      u8g2.print("Remaining time: ");
-      u8g2.printf("%02d",remaining_hours);
-      u8g2.print(":");
-      u8g2.printf("%02d",remaining_minutes);
-
-
+      if (float(remaining_hours) < 0 && remaining_minutes == 60) {
+        bookingstatus = "Free";
+        lockstatus = "Unlocked";
+      }
+      else {
+        if (float(remaining_hours) < 0) {
+          remaining_hours = 0;
+        }
+      }
+      if (bookingstatus == "Free") {
+        u8g2.setCursor(0, 10);
+        u8g2.print(timeClient.getHours());
+        u8g2.print(":");
+        u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
+        u8g2.setCursor(80, 10);
+        u8g2.print(daysOfTheWeek[timeClient.getDay()]);
+        u8g2.setCursor(40, 20);
+        u8g2.print(desc);
+        u8g2.setCursor(0, 20);
+        u8g2.print(String(temp));
+        u8g2.print("C");
+        u8g2.setCursor(0, 30);
+        u8g2.print("Skab nr: ");
+        u8g2.print(skabnr);
+        u8g2.setCursor(78, 30);
+        u8g2.print(lockstatus);
+        u8g2.setCursor(0, 40);
+        u8g2.print("Status: ");
+        u8g2.print(bookingstatus);
+        u8g2.setCursor(0, 60);
+        u8g2.print("Use our app to rent this!");
+      }
+      else {
+        u8g2.setCursor(0, 10);
+        u8g2.print(timeClient.getHours());
+        u8g2.print(":");
+        u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
+        u8g2.setCursor(80, 10);
+        u8g2.print(daysOfTheWeek[timeClient.getDay()]);
+        u8g2.setCursor(40, 20);
+        u8g2.print(desc);
+        u8g2.setCursor(0, 20);
+        u8g2.print(String(temp));
+        u8g2.print("C");
+        u8g2.setCursor(0, 30);
+        u8g2.print("Skab nr: ");
+        u8g2.print(skabnr);
+        u8g2.setCursor(80, 30);
+        u8g2.print(lockstatus);
+        u8g2.setCursor(0, 40);
+        u8g2.print("Status: ");
+        u8g2.print(bookingstatus);
+        u8g2.setCursor(0, 50);
+        u8g2.print("Rental period: ");
+        u8g2.print(rentalperiod);
+        u8g2.setCursor(0, 60);
+        u8g2.print("Remaining time: ");
+        u8g2.printf("%02d", remaining_hours);
+        u8g2.print(":");
+        u8g2.printf("%02d", remaining_minutes);
+      }
       u8g2.sendBuffer();          // transfer internal memory to the display
+      LEDControl();
     }
-
     http.end(); //Close connection
   }
   /*
