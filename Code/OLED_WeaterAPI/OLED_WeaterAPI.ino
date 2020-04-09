@@ -18,10 +18,14 @@
 const char* ssid = "Powerpuff Pigerne"; // HINT: create a hotspot with your phone..
 const char* password = "BlomstogBobbel";
 const long utcOffsetInSeconds = 7200; //For CEST, UTC +2 +2.00: 1*60*60
-char daysOfTheWeek[7][12] = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}; //Week days
+char daysOfTheWeek[7][12] = {"Sunday" , "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}; //Week days
 String skabnr;
-
-
+String bookingstatus;
+String rentalperiod;
+int remaining_hours;
+int remaining_minutes;
+int endhours;
+int endminutes;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
@@ -30,6 +34,10 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 void setup() {
   Serial.begin(115200);
   skabnr = "11";
+  bookingstatus = "Booked";
+  rentalperiod = "12-17";
+  endhours = 17;
+  endminutes =0;
   u8g2.begin();
   //connect to the wifi access point
   WiFi.begin(ssid, password);
@@ -102,30 +110,44 @@ void loop() {
       Serial.print(":");
       Serial.print(timeClient.getMinutes());
 
-
+      remaining_hours = endhours - int(timeClient.getHours());
+      remaining_minutes = abs(endminutes - (59 - int(timeClient.getMinutes())));
+      Serial.println("HER!");
+      Serial.print(remaining_hours);
+      Serial.print(":");
+      Serial.println(remaining_minutes);
 
 
 
       u8g2.clearBuffer();          // clear the internal memory
       u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
       u8g2.setCursor(0, 10);
-      u8g2.print("Skab nr: ");
-      u8g2.print(skabnr);
-      u8g2.setCursor(70, 10);
       u8g2.print(timeClient.getHours());
       u8g2.print(":");
-      u8g2.print(timeClient.getMinutes());
-      u8g2.setCursor(0, 20);
-      u8g2.print(timeClient.getDay());
-      u8g2.setCursor(0, 30);
-
-
-
+      u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
+      u8g2.setCursor(80, 10);
+      u8g2.print(daysOfTheWeek[timeClient.getDay()]);
+      u8g2.setCursor(40, 20);
       u8g2.print(desc);
-      u8g2.setCursor(0, 40);
+      u8g2.setCursor(0, 20);
       u8g2.print(String(temp));
-      u8g2.setCursor(30, 40);
       u8g2.print("C");
+      u8g2.setCursor(0, 30);
+      u8g2.print("Skab nr: ");
+      u8g2.print(skabnr);
+      u8g2.setCursor(0, 40);
+      u8g2.print("Status: ");
+      u8g2.print(bookingstatus);
+      u8g2.setCursor(0, 50);
+      u8g2.print("Rental period: ");
+      u8g2.print(rentalperiod);
+      u8g2.setCursor(0, 60);
+      u8g2.print("Remaining time: ");
+      u8g2.print(remaining_hours);
+      u8g2.print(":");
+      u8g2.print(remaining_minutes);
+
+
       u8g2.sendBuffer();          // transfer internal memory to the display
     }
 
