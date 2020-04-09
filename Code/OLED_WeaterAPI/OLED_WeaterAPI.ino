@@ -111,7 +111,7 @@ void loop() {
       Serial.print(timeClient.getMinutes());
 
       remaining_hours = endhours - int(timeClient.getHours());
-      remaining_minutes = abs(endminutes - (59 - int(timeClient.getMinutes())));
+      remaining_minutes = abs(endminutes - 1 - (59 - int(timeClient.getMinutes())));
       Serial.println("HER!");
       Serial.print(remaining_hours);
       Serial.print(":");
@@ -143,9 +143,9 @@ void loop() {
       u8g2.print(rentalperiod);
       u8g2.setCursor(0, 60);
       u8g2.print("Remaining time: ");
-      u8g2.print(remaining_hours);
+      u8g2.printf("%02d",remaining_hours);
       u8g2.print(":");
-      u8g2.print(remaining_minutes);
+      u8g2.printf("%02d",remaining_minutes);
 
 
       u8g2.sendBuffer();          // transfer internal memory to the display
