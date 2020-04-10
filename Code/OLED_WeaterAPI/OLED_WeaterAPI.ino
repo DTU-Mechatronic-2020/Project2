@@ -41,8 +41,8 @@ void setup() {
   skabnr = "11";
   bookingstatus = "Booked";
   rentalperiod = "12-18:09";
-  endhours = 20;
-  endminutes = 3;
+  endhours = 10;
+  endminutes = 22;
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
   pinMode(BlueLedPin, OUTPUT);
@@ -159,7 +159,7 @@ void loop() {
         u8g2.setCursor(0, 30);
         u8g2.print("Skab nr: ");
         u8g2.print(skabnr);
-        u8g2.setCursor(78, 30);
+        u8g2.setCursor(75, 30);
         u8g2.print(lockstatus);
         u8g2.setCursor(0, 40);
         u8g2.print("Status: ");
