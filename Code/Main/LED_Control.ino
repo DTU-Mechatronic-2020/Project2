@@ -1,5 +1,3 @@
-
-
 void LEDControl() {
   if (bookingstatus == "Free") {
     digitalWrite(GreenLedPin, HIGH);

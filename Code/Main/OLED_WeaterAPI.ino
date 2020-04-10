@@ -1,69 +1,4 @@
-#include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <ArduinoJson.h>
-#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
-#include <WiFiUdp.h>
-#include <NTPClient.h>
-
-
-#include <U8g2lib.h>
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-#ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
-#endif
-
-const char* ssid = "Powerpuff Pigerne"; // HINT: create a hotspot with your phone..
-const char* password = "BlomstogBobbel";
-const long utcOffsetInSeconds = 7200; //For CEST, UTC +2 +2.00: 1*60*60
-char daysOfTheWeek[7][12] = {"Sunday" , "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}; //Week days
-String skabnr;
-String bookingstatus;
-String rentalperiod;
-String lockstatus;
-int GreenLedPin = D4;
-int BlueLedPin = D5;
-int RedLedPin = D6;
-int remaining_hours;
-int remaining_minutes;
-int endhours;
-int endminutes;
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
-
-
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
-void setup() {
-  Serial.begin(115200);
-  lockstatus = "Locked";
-  skabnr = "11";
-  bookingstatus = "Booked";
-  rentalperiod = "12-18:09";
-  endhours = 10;
-  endminutes = 22;
-  pinMode(GreenLedPin, OUTPUT);
-  digitalWrite(GreenLedPin, LOW);
-  pinMode(BlueLedPin, OUTPUT);
-  digitalWrite(BlueLedPin, LOW);
-  pinMode(RedLedPin, OUTPUT);
-  digitalWrite(RedLedPin, LOW);
-  u8g2.begin();
-  //connect to the wifi access point
-  WiFi.begin(ssid, password);
-
-  //wait until connected - might take a while
-
-  Serial.print("Connecting  ");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println("Connected ! \n");
-}
-
-void loop() {
+void OLEDScreen(){  
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
 
     HTTPClient http; //Declare an object of class HTTPClient
@@ -93,8 +28,6 @@ void loop() {
         delay(1000);
         return;
       }
-
-
       //if it is successful, let's grab a data fragment and show it on the serial terminal:
 
       // the first forecast in the json object is at jsonBuffer['list'][0]
@@ -167,7 +100,7 @@ void loop() {
         u8g2.setCursor(0, 60);
         u8g2.print("Use our app to rent this!");
       }
-      else {
+      else if (bookingstatus == "Booked") {
         u8g2.setCursor(0, 10);
         u8g2.print(timeClient.getHours());
         u8g2.print(":");
@@ -206,7 +139,4 @@ void loop() {
     Forecast description: e.g. 'few clouds'
     Forecast temperature in C
   */
-
-  //Send a request every 1 min
-  delay(60 * 1000);
 }
