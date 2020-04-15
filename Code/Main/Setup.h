@@ -18,11 +18,17 @@ String bookingstatus;
 String rentalperiod;
 String lockstatus;
 String payload; // Definerer variablen 'payload' i det globale scope (payload er navnet på besked-variablen)
+String starttime;
+String endtime;
+String starthour;
+String startminute;
 int GreenLedPin = D4;
 int BlueLedPin = D5;
 int RedLedPin = D6;
 int remaining_hours;
 int remaining_minutes;
+String endmin;
+String endhour;
 int endhours;
 int endminutes;
 

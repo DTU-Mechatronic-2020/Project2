@@ -121,7 +121,7 @@ void OLEDScreen(){
         u8g2.print("Status: ");
         u8g2.print(bookingstatus);
         u8g2.setCursor(0, 50);
-        u8g2.print("Rental period: ");
+        u8g2.print("Period: ");
         u8g2.print(rentalperiod);
         u8g2.setCursor(0, 60);
         u8g2.print("Remaining time: ");
