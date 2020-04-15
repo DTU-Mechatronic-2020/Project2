@@ -22,6 +22,8 @@ String starttime;
 String endtime;
 String starthour;
 String startminute;
+int buttonPin = D7;
+int buttonState = 0;         // variable for reading the pushbutton status
 int GreenLedPin = D4;
 int BlueLedPin = D5;
 int RedLedPin = D6;
@@ -31,10 +33,12 @@ String endmin;
 String endhour;
 int endhours;
 int endminutes;
+int emergency = 0;
 
 //Milis variables:
-int oneminute = 60000;
+int oneminute = 30000;
 unsigned long time_now = 0;
+
 
 
 WiFiUDP ntpUDP;

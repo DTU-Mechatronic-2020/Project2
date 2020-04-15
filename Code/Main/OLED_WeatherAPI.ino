@@ -32,19 +32,19 @@ void OLEDScreen(){
 
       // the first forecast in the json object is at jsonBuffer['list'][0]
       String timestamp = jsonBuffer["list"][0]["dt_txt"];
-      Serial.print("The time for this forecast: ");
-      Serial.println(timestamp);
+      //Serial.print("The time for this forecast: ");
+      //Serial.println(timestamp);
 
       // The 'weather' in the first position in the list, is actually a list, with only one element...
       String desc = jsonBuffer["list"][0]["weather"][0]["description"];
-      Serial.print("The weather will be: ");
-      Serial.println(desc);
+      //Serial.print("The weather will be: ");
+      //Serial.println(desc);
 
       // The ArduinoJson library also has a utility function to 'pretty print' json objects, try:
-      serializeJsonPretty(jsonBuffer["list"][0], Serial);
+      //serializeJsonPretty(jsonBuffer["list"][0], Serial);
       //or
-      Serial.println("\nThe full forecast Json looks like this: ");
-      serializeJsonPretty(jsonBuffer, Serial);
+      //Serial.println("\nThe full forecast Json looks like this: ");
+      //serializeJsonPretty(jsonBuffer, Serial);
       float temp = jsonBuffer["list"][0]["main"]["temp"];
       timeClient.update();
 
@@ -52,7 +52,7 @@ void OLEDScreen(){
       Serial.print(", ");
       Serial.print(timeClient.getHours());
       Serial.print(":");
-      Serial.print(timeClient.getMinutes());
+      Serial.println(timeClient.getMinutes());
       remaining_hours = endhours - int(timeClient.getHours());
       if (endminutes - int(timeClient.getMinutes()) <= 0) {
         remaining_hours = remaining_hours - 1;
@@ -63,7 +63,7 @@ void OLEDScreen(){
       }
       u8g2.clearBuffer();          // clear the internal memory
       u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      Serial.println("HER!");
+      Serial.println("Time Remaining!");
       Serial.print(remaining_hours);
       Serial.print(":");
       Serial.println(remaining_minutes);
@@ -82,7 +82,7 @@ void OLEDScreen(){
         u8g2.print(timeClient.getHours());
         u8g2.print(":");
         u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
-        u8g2.setCursor(80, 10);
+        u8g2.setCursor(70, 10);
         u8g2.print(daysOfTheWeek[timeClient.getDay()]);
         u8g2.setCursor(40, 20);
         u8g2.print(desc);
@@ -105,7 +105,7 @@ void OLEDScreen(){
         u8g2.print(timeClient.getHours());
         u8g2.print(":");
         u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
-        u8g2.setCursor(80, 10);
+        u8g2.setCursor(70, 10);
         u8g2.print(daysOfTheWeek[timeClient.getDay()]);
         u8g2.setCursor(40, 20);
         u8g2.print(desc);
