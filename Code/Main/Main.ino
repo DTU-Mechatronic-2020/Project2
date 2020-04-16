@@ -15,6 +15,7 @@
 #endif
 #include "Setup.h"
 
+
 /////// FUNKTIONSOPSÆTNING ////////
 
 
@@ -58,11 +59,24 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
-
-
-
+      if (i < 2) {
+        starthour += (char)byteArrayPayload[i];
+      }
+      if (i > 2) {
+        startminute += (char)byteArrayPayload[i];
+      }
     }
-    Serial.print(payload);
+    Serial.println(payload);
+    starttime = payload;
+    rentalperiod = starttime + "-";
+    starthour = starthour.toInt();
+    startminute = startminute.toInt();
+    Serial.println(starthour);
+    Serial.println(startminute);
+    Serial.println(rentalperiod);
+
+
+
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
@@ -72,8 +86,21 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
+      if (i < 2) {
+        endhour += (char)byteArrayPayload[i];
+      }
+      if (i > 2) {
+        endmin += (char)byteArrayPayload[i];
+      }
     }
-    Serial.print(payload);
+    Serial.println(payload);
+    endtime = payload;
+    endhours = endhour.toInt();
+    endminutes = endmin.toInt();
+    rentalperiod = rentalperiod + endtime;
+    Serial.println(endhours);
+    Serial.println(endminutes);
+    Serial.println(rentalperiod);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
@@ -112,11 +139,12 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
 
 void setup() {
   Serial.begin(115200);
+  pinMode(buttonPin, INPUT);
   lockstatus = "Locked"; // Temporary definition
   skabnr = "11"; // Temporary definition
   bookingstatus = "Booked"; // Temporary definition
-  rentalperiod = "12-18:09"; // Temporary definition
-  endhours = 13; // Temporary definition
+  rentalperiod = "12:00-18:00"; // Temporary definition
+  endhours = 20; // Temporary definition
   endminutes = 45; // Temporary definition
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
@@ -134,6 +162,30 @@ void setup() {
 }
 
 void loop() {
+  buttonState = digitalRead(buttonPin);
+  if (buttonState == HIGH) {
+    delay(1000);
+    Serial.println("Emergency:");
+    Serial.println(emergency);
+    emergency ++;
+    if (emergency >= 4) {
+      u8g2.clearBuffer();          // clear the internal memory
+      u8g2.setFont(u8g2_font_maniac_tf);
+      u8g2.setCursor(20, 40);
+      u8g2.print("!LOCK!");
+      u8g2.setCursor(20, 64);
+      u8g2.print("!OPEN!");
+      u8g2.sendBuffer();          // transfer internal memory to the display
+      digitalWrite(GreenLedPin, HIGH);
+      digitalWrite(RedLedPin, LOW);
+      digitalWrite(BlueLedPin, LOW);
+      Serial.println("LOCK HAS BEEN OPENED!");
+      delay(15000);
+    }
+  }
+  else if (buttonState == LOW) {
+    emergency = 0;
+  }
   if (millis() >= time_now + oneminute) {
     time_now += oneminute;
     OLEDScreen();
