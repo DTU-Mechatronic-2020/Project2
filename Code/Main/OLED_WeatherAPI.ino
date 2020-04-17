@@ -68,25 +68,36 @@ void OLEDScreen() {
       Serial.print(":");
       Serial.println(remaining_minutes);
 
-      Serial.println("Hours and Minutes untill booking:");
-      Serial.println(timeClient.getHours() - starthour);
-      Serial.println(timeClient.getMinutes() - startminute);
+      //Serial.println("Hours and Minutes untill booking:");
+      //Serial.println(timeClient.getHours() - starthour);
+      //Serial.println(timeClient.getMinutes() - startminute);
 
-      if (timeClient.getHours() - starthour <= 0 && timeClient.getMinutes() - startminute >= 0) {
+
+
+      if ((timeClient.getHours() * 60 + timeClient.getMinutes()) - (starthour * 60 + startminute) < 0) {
         Futurebooking = "True";
+        bookingstatus = "Free";
       }
       else {
         Futurebooking = "False";
-      }
-      if (float(remaining_hours) < 0 && remaining_minutes == 60) {
-        bookingstatus = "Free";
-        lockstatus = "Unlocked";
-      }
-      else {
-        if (float(remaining_hours) < 0) {
-          remaining_hours = 0;
+        bookingstatus = "Booked";
+        starthour = 0;
+        startminute = 0;
+        if (float(remaining_hours) < 0 && remaining_minutes == 60) {
+          bookingstatus = "Free";
+          lockstatus = "Unlocked";
+          endminutes = 0;
+          endhours = 0;
+        }
+        else {
+          if (float(remaining_hours) < 0) {
+            remaining_hours = 0;
+          }
         }
       }
+
+      Serial.println("Booking status: ");
+      Serial.print(bookingstatus);
       if (bookingstatus == "Free") {
         u8g2.setCursor(0, 10);
         u8g2.print(timeClient.getHours());
@@ -113,13 +124,7 @@ void OLEDScreen() {
           u8g2.setCursor(0, 50);
           u8g2.print("Next booking at: ");
           u8g2.print(starttime);
-
-
         }
-
-
-
-
 
 
         u8g2.setCursor(0, 60);

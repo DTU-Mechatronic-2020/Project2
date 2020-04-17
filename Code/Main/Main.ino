@@ -57,6 +57,8 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
   // Start time: The time when the booking should start from.
   if (topic == "Start-time") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    stahour = "";
+    staminute = "";
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
       if (i < 2) {
@@ -82,6 +84,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
   // End time: The time when the booking should end.
   if (topic == "End-time") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    endhour = "";
+    endmin = "";
+
+
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
       if (i < 2) {
@@ -148,7 +154,7 @@ void setup() {
   pinMode(buttonPin, INPUT);
 
   ////////// Temporary definitions start: /////////
-  lockstatus = "Locked"; // Temporary definition
+  lockstatus = "Unlocked"; // Temporary definition
   skabnr = "11"; // Temporary definition
   bookingstatus = "Free"; // Temporary definition
   rentalperiod = "12:00-18:00"; // Temporary definition
@@ -156,13 +162,13 @@ void setup() {
   startminute = 30;
   endhours = 20; // Temporary definition
   endminutes = 45; // Temporary definition
-  starttime = "15:30";
+  starttime = "15:00";
 
 
-  
+
   ////////// Temporary definitions end: /////////
 
-  
+
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
   pinMode(BlueLedPin, OUTPUT);
@@ -195,9 +201,10 @@ void loop() {
       u8g2.setCursor(20, 64);
       u8g2.print("!OPEN!");
       u8g2.sendBuffer();          // transfer internal memory to the display
+      lockstatus == "Unlocked";
       digitalWrite(GreenLedPin, HIGH);
       digitalWrite(RedLedPin, LOW);
-      digitalWrite(BlueLedPin, LOW);
+      digitalWrite(YellowLedPin, HIGH);
       Serial.println("LOCK HAS BEEN OPENED!");
       delay(15000);
     }
