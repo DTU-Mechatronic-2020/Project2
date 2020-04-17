@@ -12,11 +12,13 @@ void LEDControl() {
     if (lockstatus == "Locked") {
       digitalWrite(GreenLedPin, LOW);
       digitalWrite(RedLedPin, HIGH);
+      digitalWrite(YellowLedPin, LOW);
       Serial.println("Green Off, Red On, Blue On");
     }
     else if (lockstatus == "Unlocked") {
       digitalWrite(GreenLedPin, HIGH);
       digitalWrite(RedLedPin, LOW);
+      digitalWrite(YellowLedPin, HIGH);
       Serial.println("Green On, Red Off, Blue On");
     }
   }

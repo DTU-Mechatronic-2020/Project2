@@ -33,7 +33,7 @@ void reconnect() {
       client.subscribe("Bookingstatus");
       client.subscribe("Skabnr");
       client.subscribe("Start-time");
-
+      client.subscribe("Lockstatus");
 
       // Hvis forbindelsen fejler køres loopet igen efter 5 sekunder indtil forbindelse er oprettet
     } else {

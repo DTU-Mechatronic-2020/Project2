@@ -1,4 +1,4 @@
-void OLEDScreen(){  
+void OLEDScreen() {
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
 
     HTTPClient http; //Declare an object of class HTTPClient
@@ -68,6 +68,16 @@ void OLEDScreen(){
       Serial.print(":");
       Serial.println(remaining_minutes);
 
+      Serial.println("Hours and Minutes untill booking:");
+      Serial.println(timeClient.getHours() - starthour);
+      Serial.println(timeClient.getMinutes() - startminute);
+
+      if (timeClient.getHours() - starthour <= 0 && timeClient.getMinutes() - startminute >= 0) {
+        Futurebooking = "True";
+      }
+      else {
+        Futurebooking = "False";
+      }
       if (float(remaining_hours) < 0 && remaining_minutes == 60) {
         bookingstatus = "Free";
         lockstatus = "Unlocked";
@@ -97,6 +107,21 @@ void OLEDScreen(){
         u8g2.setCursor(0, 40);
         u8g2.print("Status: ");
         u8g2.print(bookingstatus);
+        Serial.println("Futurebooking = ");
+        Serial.print(Futurebooking);
+        if (Futurebooking == "True") {
+          u8g2.setCursor(0, 50);
+          u8g2.print("Next booking at: ");
+          u8g2.print(starttime);
+
+
+        }
+
+
+
+
+
+
         u8g2.setCursor(0, 60);
         u8g2.print("Use our app to rent this!");
       }

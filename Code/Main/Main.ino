@@ -60,22 +60,20 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
       if (i < 2) {
-        starthour += (char)byteArrayPayload[i];
+        stahour += (char)byteArrayPayload[i];
       }
       if (i > 2) {
-        startminute += (char)byteArrayPayload[i];
+        staminute += (char)byteArrayPayload[i];
       }
     }
     Serial.println(payload);
     starttime = payload;
     rentalperiod = starttime + "-";
-    starthour = starthour.toInt();
-    startminute = startminute.toInt();
+    starthour = stahour.toInt();
+    startminute = staminute.toInt();
     Serial.println(starthour);
     Serial.println(startminute);
     Serial.println(rentalperiod);
-
-
 
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
@@ -125,7 +123,15 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
-
+  if (topic == "Lockstatus") {
+    payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    for (int i = 0; i < length; i++) {
+      payload += (char)byteArrayPayload[i];
+    }
+    lockstatus = payload;
+    Serial.print(payload);
+    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+  }
 
 
 
@@ -140,18 +146,31 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
 void setup() {
   Serial.begin(115200);
   pinMode(buttonPin, INPUT);
+
+  ////////// Temporary definitions start: /////////
   lockstatus = "Locked"; // Temporary definition
   skabnr = "11"; // Temporary definition
-  bookingstatus = "Booked"; // Temporary definition
+  bookingstatus = "Free"; // Temporary definition
   rentalperiod = "12:00-18:00"; // Temporary definition
+  starthour = 15;
+  startminute = 30;
   endhours = 20; // Temporary definition
   endminutes = 45; // Temporary definition
+  starttime = "15:30";
+
+
+  
+  ////////// Temporary definitions end: /////////
+
+  
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
   pinMode(BlueLedPin, OUTPUT);
   digitalWrite(BlueLedPin, LOW);
   pinMode(RedLedPin, OUTPUT);
   digitalWrite(RedLedPin, LOW);
+  pinMode(YellowLedPin, OUTPUT);
+  digitalWrite(YellowLedPin, LOW);
   u8g2.begin();
   //connect to the wifi access point
 
