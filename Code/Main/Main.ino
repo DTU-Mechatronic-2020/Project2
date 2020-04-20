@@ -57,37 +57,43 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
   // Start time: The time when the booking should start from.
   if (topic == "Start-time") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
-    stahour = "";
+    stahour = ""; // Nulstiller de to variabler, stahour og staminute som bliver brugt til at finde booking tidsrummet.
     staminute = "";
     for (int i = 0; i < length; i++) {
+
       payload += (char)byteArrayPayload[i];
+      // Det regnes med at beskeden er i et bestemt 5 char format således: 12:30
       if (i < 2) {
-        stahour += (char)byteArrayPayload[i];
+
+        stahour += (char)byteArrayPayload[i]; //Stahour bliver derfor time antallet 1+2 = 12
       }
       if (i > 2) {
-        staminute += (char)byteArrayPayload[i];
+        staminute += (char)byteArrayPayload[i]; //Staminute bliver til minut antallet 3+0 = 30
       }
     }
     Serial.println(payload);
     starttime = payload;
-    rentalperiod = starttime + "-";
+    rentalperiod = starttime + "-"; //Lejeperioden bliver defineret som en string med startstiden først.
+
+    // Time- og minutværdierne bliver omdannet fra string til int-værdier så de kan bruges i udregninger.
     starthour = stahour.toInt();
     startminute = staminute.toInt();
     Serial.println(starthour);
     Serial.println(startminute);
     Serial.println(rentalperiod);
-
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
 
   // End time: The time when the booking should end.
   if (topic == "End-time") {
-    payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    // Nulstiller payload, endhour og endmin variablen så forloopet ikke appender til en allerede eksisterende definationer
+    payload = "";
     endhour = "";
     endmin = "";
 
 
+
+    // Som med Start-time, forventes end-time at være i et 5-char format lignende 12:30.
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
       if (i < 2) {
@@ -99,9 +105,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     }
     Serial.println(payload);
     endtime = payload;
+    // Konverterer string værdier til int værdier.
     endhours = endhour.toInt();
     endminutes = endmin.toInt();
-    rentalperiod = rentalperiod + endtime;
+    rentalperiod = rentalperiod + endtime; //Afslutter lejeperioden med stringen for slutlejeperioden.
     Serial.println(endhours);
     Serial.println(endminutes);
     Serial.println(rentalperiod);
