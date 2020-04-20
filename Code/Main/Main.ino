@@ -1,3 +1,5 @@
+// Import af biblioteker
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -115,33 +117,34 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  // End time: The time when the booking should end.
+  // Giver clienten en mulighed for at ændre bookingstatus. Tænkes at skal bruges når en booking anulleres.
   if (topic == "Bookingstatus") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    bookingstatus = String(payload); // Temporary definition
+    bookingstatus = String(payload); //Sætter bookingstatus til at være payloaden.
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  // Gets the number og the cabinet.
+  // Gets the number og the cabinet : I tilfælde af at der er flere skabe, så kan skabet nr. defineres.
   if (topic == "Skabnr") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    skabnr = payload;
+    skabnr = payload; //
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
+  // Giver clienten mulighed for at åbne og lukke skabet.
   if (topic == "Lockstatus") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    lockstatus = payload;
+    lockstatus = payload; // Lockstatus bliver defineret som payloaden.
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
@@ -164,37 +167,41 @@ void setup() {
   lockstatus = "Unlocked"; // Temporary definition
   skabnr = "11"; // Temporary definition
   bookingstatus = "Free"; // Temporary definition
-  rentalperiod = "12:00-18:00"; // Temporary definition
+  rentalperiod = "15:00-23:59"; // Temporary definition
   starthour = 15;
-  startminute = 30;
-  endhours = 20; // Temporary definition
-  endminutes = 45; // Temporary definition
+  startminute = 00;
+  endhours = 23; // Temporary definition
+  endminutes = 59; // Temporary definition
   starttime = "15:00";
 
 
 
   ////////// Temporary definitions end: /////////
 
-
+  ///////// LED SETUP /////////////
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
   pinMode(BlueLedPin, OUTPUT);
   digitalWrite(BlueLedPin, LOW);
   pinMode(RedLedPin, OUTPUT);
   digitalWrite(RedLedPin, LOW);
+
+  ///////// Den gule LED repræsenterer låsen. //////////
   pinMode(YellowLedPin, OUTPUT);
   digitalWrite(YellowLedPin, LOW);
-  u8g2.begin();
+  u8g2.begin(); //Tænder skærmen
+ 
   //connect to the wifi access point
-
   setup_wifi(); // Kører WiFi loopet og forbinder herved.
   client.setServer(mqtt_server, mqtt_port); // Forbinder til mqtt serveren (defineret længere oppe)
   client.setCallback(callback); // Ingangsætter den definerede callback funktion hver gang der er en ny besked på den subscribede "cmd"- topic
-  OLEDScreen();
+  OLEDScreen(); // Kører OLEDScreen funktionen ved start, således at der er information på skærmen.
 }
 
 void loop() {
-  buttonState = digitalRead(buttonPin);
+  // Der er monteret en fysisk knap der kan bruges til at tvinge skabet op. //
+  buttonState = digitalRead(buttonPin); // Læser knapværdi hele tiden
+  // Hvis knappen er holdt inde i 4 sekunder, så åbnes skabet og OLED printer besked.
   if (buttonState == HIGH) {
     delay(1000);
     Serial.println("Emergency:");
@@ -208,19 +215,19 @@ void loop() {
       u8g2.setCursor(20, 64);
       u8g2.print("!OPEN!");
       u8g2.sendBuffer();          // transfer internal memory to the display
-      lockstatus == "Unlocked";
+      lockstatus == "Unlocked";   // Unlocker Lås 
       digitalWrite(GreenLedPin, HIGH);
       digitalWrite(RedLedPin, LOW);
-      digitalWrite(YellowLedPin, HIGH);
+      digitalWrite(YellowLedPin, HIGH); // Lås bliver åbnet
       Serial.println("LOCK HAS BEEN OPENED!");
-      delay(15000);
+      delay(15000); // Laver et 15 sekunders delay hvor funktionerne ikke kører, mens låsen er åben.
     }
   }
   else if (buttonState == LOW) {
     emergency = 0;
   }
-  if (millis() >= time_now + oneminute) {
-    time_now += oneminute;
+  if (millis() >= time_now + tenseconds) { //Opdaterer skærm, vejr, tid mm. hvert 10. sekund.
+    time_now += tenseconds;
     OLEDScreen();
   }
   if (!client.connected()) {

@@ -1,13 +1,12 @@
 void OLEDScreen() {
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
-
     HTTPClient http; //Declare an object of class HTTPClient
 
-    // REMEMBER to replace YOURKEY from the url with your own key
-
+    // Får vejrdata fra en vejr-api. Her er vejret fra københavn.
     http.begin("http://api.openweathermap.org/data/2.5/forecast?q=Copenhagen,dk&appid=95fb8a0ca887dc68309f34e8d20c8ceb&units=metric&cnt=3"); //Specify request destination
     int httpCode = http.GET(); //Send the request
 
+    // Hvis der er data modtaget, så kører koden.
     if (httpCode > 0) { //Check the returning code
 
       String payload = http.getString(); //Get the request response payload - the json object as a plain text
@@ -32,29 +31,28 @@ void OLEDScreen() {
 
       // the first forecast in the json object is at jsonBuffer['list'][0]
       String timestamp = jsonBuffer["list"][0]["dt_txt"];
-      //Serial.print("The time for this forecast: ");
-      //Serial.println(timestamp);
 
       // The 'weather' in the first position in the list, is actually a list, with only one element...
       String desc = jsonBuffer["list"][0]["weather"][0]["description"];
-      //Serial.print("The weather will be: ");
-      //Serial.println(desc);
 
       // The ArduinoJson library also has a utility function to 'pretty print' json objects, try:
       //serializeJsonPretty(jsonBuffer["list"][0], Serial);
       //or
       //Serial.println("\nThe full forecast Json looks like this: ");
       //serializeJsonPretty(jsonBuffer, Serial);
-      float temp = jsonBuffer["list"][0]["main"]["temp"];
-      timeClient.update();
+
+      float temp = jsonBuffer["list"][0]["main"]["temp"]; //Tager temperaturen fra vejr APIen
+      timeClient.update(); //Opdaterer tiden.
 
       Serial.print(daysOfTheWeek[timeClient.getDay()]);
       Serial.print(", ");
       Serial.print(timeClient.getHours());
       Serial.print(":");
       Serial.println(timeClient.getMinutes());
-      remaining_hours = endhours - int(timeClient.getHours());
+      remaining_hours = endhours - int(timeClient.getHours()); // Laver en udregning for hvor mange timer der er tilbage på en igangværende booking.
       if (endminutes - int(timeClient.getMinutes()) <= 0) {
+        //Når der er mindre end én time tilbage, reduceres antallet af timer tilbage med én.
+        //Hvis sluttiden er 16:30 og klokken bliver 15:31, så skal der ikke stå 1time og 59 minutter tilbage, men derimod 0timer og 59 minutter tilbage.
         remaining_hours = remaining_hours - 1;
         remaining_minutes = 60 - abs(endminutes - int(timeClient.getMinutes()));
       }
@@ -73,22 +71,28 @@ void OLEDScreen() {
       //Serial.println(timeClient.getMinutes() - startminute);
 
 
-
+      // Hvis der bliver modtaget en booking i fremtiden, så skal skabet stadigt være ledigt indtil bookingstidsrummet.
       if ((timeClient.getHours() * 60 + timeClient.getMinutes()) - (starthour * 60 + startminute) < 0) {
         Futurebooking = "True";
         bookingstatus = "Free";
       }
       else {
+        // Hvis bookingen er igang, så skal skabet være betegnet som værende booked.
         Futurebooking = "False";
         bookingstatus = "Booked";
-        starthour = 0;
+        //Start tidspunktet når en booking først er igang, skal ikke have indflydelse.
+        starthour = 0; 
         startminute = 0;
+        // Hvis en igangværende booking udløber, så skal skabet igen være ledigt og låsen skal åbnes.
         if (float(remaining_hours) < 0 && remaining_minutes == 60) {
           bookingstatus = "Free";
           lockstatus = "Unlocked";
           endminutes = 0;
           endhours = 0;
         }
+        // Hvis bookingen er igang, men der er mindre end 1 time tilbage således at følgende gælder: 
+        // Slut tidspunkt: 15:30 | Nuværende tidspunkt: 15:20 | Så vil der være 10 minutter tilbage af bookingen, men grundet funktionen længere oppe, så kan det restrende timeantal godt være vist som -1 time.
+        // I dette tilfælde skal timeantallet der ikke kunne være under 0.  
         else {
           if (float(remaining_hours) < 0) {
             remaining_hours = 0;
@@ -98,9 +102,10 @@ void OLEDScreen() {
 
       Serial.println("Booking status: ");
       Serial.print(bookingstatus);
+      // Skærmen skal vise forskellige ting ud fra om der er en igangværende booking.
       if (bookingstatus == "Free") {
         u8g2.setCursor(0, 10);
-        u8g2.print(timeClient.getHours());
+        u8g2.printf("%02d",timeClient.getHours()); //Makes sure that there's always being printed with two dicimals.
         u8g2.print(":");
         u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
         u8g2.setCursor(70, 10);
@@ -120,6 +125,7 @@ void OLEDScreen() {
         u8g2.print(bookingstatus);
         Serial.println("Futurebooking = ");
         Serial.print(Futurebooking);
+        // I tilfælde af at skabet er ledigt, men at der senere vil være en booking, så vises det hvornår denne booking forekommer.
         if (Futurebooking == "True") {
           u8g2.setCursor(0, 50);
           u8g2.print("Next booking at: ");
@@ -128,11 +134,11 @@ void OLEDScreen() {
 
 
         u8g2.setCursor(0, 60);
-        u8g2.print("Use our app to rent this!");
+        u8g2.print("Book this through our APP!");
       }
       else if (bookingstatus == "Booked") {
         u8g2.setCursor(0, 10);
-        u8g2.print(timeClient.getHours());
+        u8g2.printf("%02d", timeClient.getHours()); //Makes sure that there's always being printed with two dicimals.
         u8g2.print(":");
         u8g2.printf("%02d", timeClient.getMinutes()); //Makes sure that there's always being printed with two dicimals.
         u8g2.setCursor(70, 10);
@@ -151,16 +157,16 @@ void OLEDScreen() {
         u8g2.print("Status: ");
         u8g2.print(bookingstatus);
         u8g2.setCursor(0, 50);
-        u8g2.print("Period: ");
-        u8g2.print(rentalperiod);
+        u8g2.print("Period: "); 
+        u8g2.print(rentalperiod); // Printer bookingperioden på skærmen.
         u8g2.setCursor(0, 60);
         u8g2.print("Remaining time: ");
-        u8g2.printf("%02d", remaining_hours);
+        u8g2.printf("%02d", remaining_hours); //Makes sure that there's always being printed with two dicimals.
         u8g2.print(":");
-        u8g2.printf("%02d", remaining_minutes);
+        u8g2.printf("%02d", remaining_minutes); //Makes sure that there's always being printed with two dicimals.
       }
       u8g2.sendBuffer();          // transfer internal memory to the display
-      LEDControl();
+      LEDControl(); // Kører LEDerne sammen med skærmen
     }
     http.end(); //Close connection
   }
