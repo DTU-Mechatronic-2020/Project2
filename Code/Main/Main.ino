@@ -1,3 +1,5 @@
+// Import af biblioteker
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
@@ -57,33 +59,43 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
   // Start time: The time when the booking should start from.
   if (topic == "Start-time") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    stahour = ""; // Nulstiller de to variabler, stahour og staminute som bliver brugt til at finde booking tidsrummet.
+    staminute = "";
     for (int i = 0; i < length; i++) {
+
       payload += (char)byteArrayPayload[i];
+      // Det regnes med at beskeden er i et bestemt 5 char format således: 12:30
       if (i < 2) {
-        starthour += (char)byteArrayPayload[i];
+
+        stahour += (char)byteArrayPayload[i]; //Stahour bliver derfor time antallet 1+2 = 12
       }
       if (i > 2) {
-        startminute += (char)byteArrayPayload[i];
+        staminute += (char)byteArrayPayload[i]; //Staminute bliver til minut antallet 3+0 = 30
       }
     }
     Serial.println(payload);
     starttime = payload;
-    rentalperiod = starttime + "-";
-    starthour = starthour.toInt();
-    startminute = startminute.toInt();
+    rentalperiod = starttime + "-"; //Lejeperioden bliver defineret som en string med startstiden først.
+
+    // Time- og minutværdierne bliver omdannet fra string til int-værdier så de kan bruges i udregninger.
+    starthour = stahour.toInt();
+    startminute = staminute.toInt();
     Serial.println(starthour);
     Serial.println(startminute);
     Serial.println(rentalperiod);
-
-
-
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
 
   // End time: The time when the booking should end.
   if (topic == "End-time") {
-    payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    // Nulstiller payload, endhour og endmin variablen så forloopet ikke appender til en allerede eksisterende definationer
+    payload = "";
+    endhour = "";
+    endmin = "";
+
+
+
+    // Som med Start-time, forventes end-time at være i et 5-char format lignende 12:30.
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
       if (i < 2) {
@@ -95,37 +107,47 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     }
     Serial.println(payload);
     endtime = payload;
+    // Konverterer string værdier til int værdier.
     endhours = endhour.toInt();
     endminutes = endmin.toInt();
-    rentalperiod = rentalperiod + endtime;
+    rentalperiod = rentalperiod + endtime; //Afslutter lejeperioden med stringen for slutlejeperioden.
     Serial.println(endhours);
     Serial.println(endminutes);
     Serial.println(rentalperiod);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  // End time: The time when the booking should end.
+  // Giver clienten en mulighed for at ændre bookingstatus. Tænkes at skal bruges når en booking anulleres.
   if (topic == "Bookingstatus") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    bookingstatus = String(payload); // Temporary definition
+    bookingstatus = String(payload); //Sætter bookingstatus til at være payloaden.
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  // Gets the number og the cabinet.
+  // Gets the number og the cabinet : I tilfælde af at der er flere skabe, så kan skabet nr. defineres.
   if (topic == "Skabnr") {
     payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    skabnr = payload;
+    skabnr = payload; //
     Serial.print(payload);
     //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
-
+  // Giver clienten mulighed for at åbne og lukke skabet.
+  if (topic == "Lockstatus") {
+    payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
+    for (int i = 0; i < length; i++) {
+      payload += (char)byteArrayPayload[i];
+    }
+    lockstatus = payload; // Lockstatus bliver defineret som payloaden.
+    Serial.print(payload);
+    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+  }
 
 
 
@@ -140,29 +162,46 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
 void setup() {
   Serial.begin(115200);
   pinMode(buttonPin, INPUT);
-  lockstatus = "Locked"; // Temporary definition
+
+  ////////// Temporary definitions start: /////////
+  lockstatus = "Unlocked"; // Temporary definition
   skabnr = "11"; // Temporary definition
-  bookingstatus = "Booked"; // Temporary definition
-  rentalperiod = "12:00-18:00"; // Temporary definition
-  endhours = 20; // Temporary definition
-  endminutes = 45; // Temporary definition
+  bookingstatus = "Free"; // Temporary definition
+  rentalperiod = "15:00-23:59"; // Temporary definition
+  starthour = 15;
+  startminute = 00;
+  endhours = 23; // Temporary definition
+  endminutes = 59; // Temporary definition
+  starttime = "15:00";
+
+
+
+  ////////// Temporary definitions end: /////////
+
+  ///////// LED SETUP /////////////
   pinMode(GreenLedPin, OUTPUT);
   digitalWrite(GreenLedPin, LOW);
   pinMode(BlueLedPin, OUTPUT);
   digitalWrite(BlueLedPin, LOW);
   pinMode(RedLedPin, OUTPUT);
   digitalWrite(RedLedPin, LOW);
-  u8g2.begin();
-  //connect to the wifi access point
 
+  ///////// Den gule LED repræsenterer låsen. //////////
+  pinMode(YellowLedPin, OUTPUT);
+  digitalWrite(YellowLedPin, LOW);
+  u8g2.begin(); //Tænder skærmen
+ 
+  //connect to the wifi access point
   setup_wifi(); // Kører WiFi loopet og forbinder herved.
   client.setServer(mqtt_server, mqtt_port); // Forbinder til mqtt serveren (defineret længere oppe)
   client.setCallback(callback); // Ingangsætter den definerede callback funktion hver gang der er en ny besked på den subscribede "cmd"- topic
-  OLEDScreen();
+  OLEDScreen(); // Kører OLEDScreen funktionen ved start, således at der er information på skærmen.
 }
 
 void loop() {
-  buttonState = digitalRead(buttonPin);
+  // Der er monteret en fysisk knap der kan bruges til at tvinge skabet op. //
+  buttonState = digitalRead(buttonPin); // Læser knapværdi hele tiden
+  // Hvis knappen er holdt inde i 4 sekunder, så åbnes skabet og OLED printer besked.
   if (buttonState == HIGH) {
     delay(1000);
     Serial.println("Emergency:");
@@ -176,18 +215,19 @@ void loop() {
       u8g2.setCursor(20, 64);
       u8g2.print("!OPEN!");
       u8g2.sendBuffer();          // transfer internal memory to the display
+      lockstatus == "Unlocked";   // Unlocker Lås 
       digitalWrite(GreenLedPin, HIGH);
       digitalWrite(RedLedPin, LOW);
-      digitalWrite(BlueLedPin, LOW);
+      digitalWrite(YellowLedPin, HIGH); // Lås bliver åbnet
       Serial.println("LOCK HAS BEEN OPENED!");
-      delay(15000);
+      delay(15000); // Laver et 15 sekunders delay hvor funktionerne ikke kører, mens låsen er åben.
     }
   }
   else if (buttonState == LOW) {
     emergency = 0;
   }
-  if (millis() >= time_now + oneminute) {
-    time_now += oneminute;
+  if (millis() >= time_now + tenseconds) { //Opdaterer skærm, vejr, tid mm. hvert 10. sekund.
+    time_now += tenseconds;
     OLEDScreen();
   }
   if (!client.connected()) {

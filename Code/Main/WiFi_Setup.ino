@@ -28,12 +28,12 @@ void reconnect() {
 
     if (client.connect("UNIQUE_CLIENT_NAME", mqtt_user, mqtt_pass)) { // Forbinder til klient med mqtt bruger og password
       Serial.println("connected");
-      // Derudover subsribes til topic "Test" hvor NodeMCU modtager payload beskeder fra
+      // Derudover subsribes til følgende topics, hvor NodeMCU modtager payload beskeder fra.
       client.subscribe("End-time");
       client.subscribe("Bookingstatus");
       client.subscribe("Skabnr");
       client.subscribe("Start-time");
-
+      client.subscribe("Lockstatus");
 
       // Hvis forbindelsen fejler køres loopet igen efter 5 sekunder indtil forbindelse er oprettet
     } else {
