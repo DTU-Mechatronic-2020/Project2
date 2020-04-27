@@ -1,3 +1,6 @@
+// This code has been made for the course Mechatronics engineering design F20. 
+// The code has been made by Group 8 for the second project of the course, Project 2 - IoT  
+
 // Defining pins, variables and more. 
 
 

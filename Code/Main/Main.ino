@@ -1,3 +1,7 @@
+// This code has been made for the course Mechatronics engineering design F20.
+// The code has been made by Group 8 for the second project of the course, Project 2 - IoT
+
+
 // Import af biblioteker
 
 #include <Arduino.h>
@@ -83,6 +87,7 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     Serial.println(starthour);
     Serial.println(startminute);
     Serial.println(rentalperiod);
+    client.publish("RecievedStartTime", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
 
@@ -114,7 +119,7 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     Serial.println(endhours);
     Serial.println(endminutes);
     Serial.println(rentalperiod);
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+    client.publish("RecievedEndTime", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
   // Giver clienten en mulighed for at ændre bookingstatus. Tænkes at skal bruges når en booking anulleres.
@@ -123,9 +128,14 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    bookingstatus = String(payload); //Sætter bookingstatus til at være payloaden.
+    if (payload == "Check") {
+      client.publish("CurrentBookingstatus", String(bookingstatus).c_str()); //Lader NodeRed checke hvad skabets nuværende status er.
+    }
+    else {
+      bookingstatus = String(payload); //Sætter bookingstatus til at være payloaden.
+      client.publish("CurrentBookingstatus", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+    }
     Serial.print(payload);
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
   // Gets the number og the cabinet : I tilfælde af at der er flere skabe, så kan skabet nr. defineres.
@@ -136,7 +146,7 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     }
     skabnr = payload; //
     Serial.print(payload);
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+    client.publish("LokcerNumber", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
   // Giver clienten mulighed for at åbne og lukke skabet.
   if (topic == "Lockstatus") {
@@ -144,10 +154,16 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     for (int i = 0; i < length; i++) {
       payload += (char)byteArrayPayload[i];
     }
-    lockstatus = payload; // Lockstatus bliver defineret som payloaden.
+    if (payload == "Check") {
+      client.publish("CurrentLockstatus", String(lockstatus).c_str()); //Lader NodeRed checke hvad skabets nuværende status er.
+    }
+    else {
+      lockstatus = payload; // Lockstatus bliver defineret som payloaden.
+      client.publish("CurrentLockstatus", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. //Husk at subscribe til topic'et i NodeRed.
+    }
     Serial.print(payload);
-    //client.publish("mqtt", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
+
 
 
 
@@ -190,7 +206,7 @@ void setup() {
   pinMode(YellowLedPin, OUTPUT);
   digitalWrite(YellowLedPin, LOW);
   u8g2.begin(); //Tænder skærmen
- 
+
   //connect to the wifi access point
   setup_wifi(); // Kører WiFi loopet og forbinder herved.
   client.setServer(mqtt_server, mqtt_port); // Forbinder til mqtt serveren (defineret længere oppe)
@@ -215,7 +231,7 @@ void loop() {
       u8g2.setCursor(20, 64);
       u8g2.print("!OPEN!");
       u8g2.sendBuffer();          // transfer internal memory to the display
-      lockstatus == "Unlocked";   // Unlocker Lås 
+      lockstatus == "Unlocked";   // Unlocker Lås
       digitalWrite(GreenLedPin, HIGH);
       digitalWrite(RedLedPin, LOW);
       digitalWrite(YellowLedPin, HIGH); // Lås bliver åbnet

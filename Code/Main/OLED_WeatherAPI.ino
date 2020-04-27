@@ -1,3 +1,7 @@
+// This code has been made for the course Mechatronics engineering design F20. 
+// The code has been made by Group 8 for the second project of the course, Project 2 - IoT  
+
+// Function that controls and changes the OLED screen, aswell as uses an weather API. 
 void OLEDScreen() {
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
     HTTPClient http; //Declare an object of class HTTPClient
@@ -89,6 +93,7 @@ void OLEDScreen() {
           lockstatus = "Unlocked";
           endminutes = 0;
           endhours = 0;
+          client.publish("CurrentBookingstatus",String(bookingstatus).c_str()); //Lets NodeMCU know, that the locker now is free.
         }
         // Hvis bookingen er igang, men der er mindre end 1 time tilbage således at følgende gælder: 
         // Slut tidspunkt: 15:30 | Nuværende tidspunkt: 15:20 | Så vil der være 10 minutter tilbage af bookingen, men grundet funktionen længere oppe, så kan det restrende timeantal godt være vist som -1 time.
@@ -134,7 +139,7 @@ void OLEDScreen() {
 
 
         u8g2.setCursor(0, 60);
-        u8g2.print("Book this through our APP!");
+        u8g2.print("You can book this!");
       }
       else if (bookingstatus == "Booked") {
         u8g2.setCursor(0, 10);
