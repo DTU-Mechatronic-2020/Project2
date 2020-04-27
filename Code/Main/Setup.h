@@ -40,7 +40,7 @@ int endminutes;
 int emergency = 0;
 int starthour;
 int startminute;
-
+int j;
 // Pin Setup
 int buttonPin = D7;
 int buttonState = 0;         // variable for reading the pushbutton status

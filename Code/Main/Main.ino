@@ -84,9 +84,6 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     // Time- og minutværdierne bliver omdannet fra string til int-værdier så de kan bruges i udregninger.
     starthour = stahour.toInt();
     startminute = staminute.toInt();
-    Serial.println(starthour);
-    Serial.println(startminute);
-    Serial.println(rentalperiod);
     client.publish("RecievedStartTime", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
@@ -182,15 +179,9 @@ void setup() {
   ////////// Temporary definitions start: /////////
   lockstatus = "Unlocked"; // Temporary definition
   skabnr = "11"; // Temporary definition
-  bookingstatus = "Free"; // Temporary definition
-  rentalperiod = "15:00-23:59"; // Temporary definition
-  starthour = 15;
-  startminute = 00;
-  endhours = 23; // Temporary definition
-  endminutes = 59; // Temporary definition
-  starttime = "15:00";
-
-
+  bookingstatus = "true"; // Temporary definition
+  timeClient.update(); //Opdaterer tiden.
+  j = 0;
 
   ////////// Temporary definitions end: /////////
 
@@ -220,8 +211,6 @@ void loop() {
   // Hvis knappen er holdt inde i 4 sekunder, så åbnes skabet og OLED printer besked.
   if (buttonState == HIGH) {
     delay(1000);
-    Serial.println("Emergency:");
-    Serial.println(emergency);
     emergency ++;
     if (emergency >= 4) {
       u8g2.clearBuffer();          // clear the internal memory
@@ -243,6 +232,15 @@ void loop() {
     emergency = 0;
   }
   if (millis() >= time_now + tenseconds) { //Opdaterer skærm, vejr, tid mm. hvert 10. sekund.
+    //Den første gang skriptet kører, sættes slut- og starts tidspunkter til at være lig med tiden den befinder sig i. 
+    //Dette gør at OLED funktionen kan køre ordenligt efter den første tidsperiode, indtil der bliver givet en nye tidspunkter fra NodeRed.
+    if (j == 0) {
+      starthour = timeClient.getHours();
+      startminute = timeClient.getMinutes();
+      endhours = timeClient.getHours();
+      endminutes = timeClient.getMinutes()+1;
+      j++;
+    }
     time_now += tenseconds;
     OLEDScreen();
   }
