@@ -70,7 +70,13 @@ void OLEDScreen() {
       // Udregner hvor meget tid der er tilbage af en aktuel booking.
       if (bookingstatus == "false") {
         remaining_hours = floor(((endhours * 60 + endminutes) - (timeClient.getHours() * 60 + timeClient.getMinutes())) / 60); //Finder hvor mange timer der er tilbage og runder ned. 1.15 timer bliver til 1 time.
-        remaining_minutes =60- abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
+        if ((endminutes - int(timeClient.getMinutes())) < 0) {
+          remaining_minutes = 60 - abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
+        }
+        else {
+          remaining_minutes = abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
+        }
+        remaining_minutes = 60 - abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
         // Hvis en igangværende booking udløber, så skal skabet igen være ledigt og låsen skal åbnes.
         if (remaining_hours <= 0 && remaining_minutes <= 0 || remaining_hours < 0 ) {
           bookingstatus = "true";
@@ -106,9 +112,9 @@ void OLEDScreen() {
         if (Futurebooking == "True") {
           u8g2.setCursor(0, 50);
           u8g2.print("Next booking at: ");
-          u8g2.print(starthour);
+          u8g2.printf("%02d", starthour);
           u8g2.print(":");
-          u8g2.print(startminute);
+          u8g2.printf("%02d", startminute);
         }
         u8g2.setCursor(0, 60);
         u8g2.print("You can book this!");
