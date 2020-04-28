@@ -1,4 +1,4 @@
-// This code has been made for the course Mechatronics engineering design F20. 
+ // This code has been made for the course Mechatronics engineering design F20. 
 // The code has been made by Group 8 for the second project of the course, Project 2 - IoT  
 
 /////// OPSÆTNING AF WIFI-FORBINDELSE  ///////////
