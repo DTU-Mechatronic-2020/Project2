@@ -76,7 +76,6 @@ void OLEDScreen() {
         else {
           remaining_minutes = abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
         }
-        remaining_minutes = 60 - abs(endminutes - int(timeClient.getMinutes())); //Finder hvor mange minutter der er tilbage.
         // Hvis en igangværende booking udløber, så skal skabet igen være ledigt og låsen skal åbnes.
         if (remaining_hours <= 0 && remaining_minutes <= 0 || remaining_hours < 0 ) {
           bookingstatus = "true";
