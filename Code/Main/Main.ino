@@ -232,15 +232,6 @@ void loop() {
     emergency = 0;
   }
   if (millis() >= time_now + tenseconds) { //Opdaterer skærm, vejr, tid mm. hvert 10. sekund.
-    //Den første gang skriptet kører, sættes slut- og starts tidspunkter til at være lig med tiden den befinder sig i. 
-    //Dette gør at OLED funktionen kan køre ordenligt efter den første tidsperiode, indtil der bliver givet en nye tidspunkter fra NodeRed.
-    if (j == 0) {
-      starthour = timeClient.getHours();
-      startminute = timeClient.getMinutes();
-      endhours = timeClient.getHours();
-      endminutes = timeClient.getMinutes()+1;
-      j++;
-    }
     time_now += tenseconds;
     OLEDScreen();
   }
