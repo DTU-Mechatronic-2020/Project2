@@ -181,7 +181,6 @@ void setup() {
   skabnr = "11"; // Temporary definition
   bookingstatus = "true"; // Temporary definition
   timeClient.update(); //Opdaterer tiden.
-  j = 0;
 
   ////////// Temporary definitions end: /////////
 
