@@ -1,0 +1,11 @@
+3 KG VÆGT - MIXING CHAMPER
+17.06.2020 kl.14:50
+
+Zeroing factor = -529349
+Calibration factor = -1015
+
+
+1 KG VÆGT - ALKOHOL
+
+Zeroing factor = -1070723
+Calibration factor = -1940
