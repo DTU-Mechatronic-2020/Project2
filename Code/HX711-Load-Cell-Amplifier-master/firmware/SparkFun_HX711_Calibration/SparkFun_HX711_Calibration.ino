@@ -32,7 +32,7 @@
  The HX711 board can be powered from 2.7V to 5V so the Arduino 5V power should be fine.
  
 */
-//-335150 Zero Factor
+
 #include "HX711.h" //This library can be obtained here http://librarymanager/All#Avia_HX711
 
 #define LOADCELL_DOUT_PIN  3
@@ -40,7 +40,7 @@
 
 HX711 scale;
 
-float calibration_factor = -1015; //-7050 worked for my 440lb max scale setup
+float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
 
 void setup() {
   Serial.begin(9600);
@@ -64,8 +64,8 @@ void loop() {
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
   Serial.print("Reading: ");
-  Serial.print(scale.get_units(), 10);
-  Serial.print(" g"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
+  Serial.print(scale.get_units(), 1);
+  Serial.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" calibration_factor: ");
   Serial.print(calibration_factor);
   Serial.println();
@@ -74,9 +74,8 @@ void loop() {
   {
     char temp = Serial.read();
     if(temp == '+' || temp == 'a')
-      calibration_factor += 5;
+      calibration_factor += 10;
     else if(temp == '-' || temp == 'z')
-      calibration_factor -= 5;
+      calibration_factor -= 10;
   }
-  delay(100);
 }
