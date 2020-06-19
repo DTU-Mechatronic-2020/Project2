@@ -14,15 +14,15 @@ void setup()
 void loop()
 {
   digitalWrite(motor1, HIGH); //turns the LED on
-  delay(60000);
+  delay(5000);
   digitalWrite(motor1, LOW);
   
   digitalWrite(motor2, HIGH); //turns the LED on
-  delay(60000);
+  delay(5000);
   digitalWrite(motor2, LOW);
   
   digitalWrite(motor3, HIGH); //turns the LED on
-  delay(60000);
+  delay(5000);
   digitalWrite(motor3, LOW);
 
   digitalWrite(motor1, HIGH); //turns the LED on
