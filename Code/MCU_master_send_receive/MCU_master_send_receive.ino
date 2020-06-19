@@ -45,13 +45,13 @@ int distance;
 
 
 //FLAME SENSOR
-const int flamePin = 5;
+const int flamePin = D5;
 int Flame = HIGH;
 
-//LED'er 
+//LED'er
 
-int ledRED = 6;
-int ledGREEN = 7;
+int ledRED = D6;
+int ledGREEN = D7;
 
 
 /////// FUNKTIONSOPSÆTNING ////////
@@ -211,14 +211,14 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     //client.publish("RecievedEndTime", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  char ethanolrcpchar[3]={ethanolrcp};
-  char waterrcpchar[3]={waterrcp};
-  char glycerinrcpchar[3]={glycerinrcp};
-  char brintoveriltercpchar[3]={brintoveriltercp};
-  char oilrcpchar[3]={oilrcp};
+  char ethanolrcpchar[3] = {ethanolrcp};
+  char waterrcpchar[3] = {waterrcp};
+  char glycerinrcpchar[3] = {glycerinrcp};
+  char brintoveriltercpchar[3] = {brintoveriltercp};
+  char oilrcpchar[3] = {oilrcp};
 
 
-  
+
   int recipe[5] = {ethanolrcpchar[3], waterrcpchar[3], glycerinrcpchar[3], brintoveriltercpchar[3], oilrcpchar[3]};
 
 }
@@ -235,14 +235,23 @@ int len;
 
 
 
-void setup(void) {
+void setup() {
   Serial.begin(115200); /* begin serial for debug */
   Wire.begin(D3, D4); /* join i2c bus with SDA=D1 and SCL=D2 of NodeMCU */
   u8g2.begin();
 
   setup_wifi(); // Kører WiFi loopet og forbinder herved.
   client.setServer(mqtt_server, mqtt_port); // Forbinder til mqtt serveren (defineret længere oppe)
+
   client.setCallback(callback); // Ingangsætter den definerede callback funktion hver gang der er en ny besked på den subscribede "cmd"- topic
+  Serial.println("MQTT_Server");
+
+
+  u8g2.clearBuffer();          // clear the internal memory
+  u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+  u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
+  u8g2.sendBuffer();          // transfer internal memory to the display
+  delay(5000);
   /*
     pinMode(GreenLedPin, OUTPUT);
     digitalWrite(GreenLedPin, LOW);
@@ -254,6 +263,8 @@ void setup(void) {
   bool mixingstatus = LOW;
   bool dispensingstatus = LOW;
   int mixingMassMin = 500;
+  Serial.println("MixingMassMin");
+
 
   //Flame
   pinMode(flamePin, INPUT);
@@ -261,12 +272,13 @@ void setup(void) {
   //LED'er
   pinMode(ledRED, OUTPUT);
   pinMode(ledGREEN, OUTPUT);
-  digitalWrite(ledRED,LOW);
-  digitalWrite(ledGREEN,LOW);
+  digitalWrite(ledRED, LOW);
+  digitalWrite(ledGREEN, LOW);
+  Serial.println("Setup Done");
 }
 
 
-void loop(void) {
+void loop() {
 
   /////////////////// Read function //////////////////
   Wire.requestFrom(8, 3); /* request & read data of size 13 from slave */
@@ -277,23 +289,23 @@ void loop(void) {
     ////// OLED control //////
 
     /*
-    if (c == 0) {
+      if (c == 0) {
       u8g2.clearBuffer();          // clear the internal memory
       u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
       u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
       u8g2.sendBuffer();          // transfer internal memory to the display
       delay(10);
-    }
+      }
 
-    if (c == 1) {
+      if (c == 1) {
       u8g2.clearBuffer();          // clear the internal memory
       u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
       u8g2.drawStr(0, 10, "FIRE guys, run!!"); // write something to the internal memory
       u8g2.sendBuffer();          // transfer internal memory to the display
       delay(10);
-    }
+      }
 
-    if (c == 2) {
+      if (c == 2) {
 
       u8g2.clearBuffer();          // clear the internal memory
       u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
@@ -301,21 +313,21 @@ void loop(void) {
       u8g2.sendBuffer();          // transfer internal memory to the display
       delay(10);
 
-    }
-    else {
- */
-      
-      //// Read weightsensors ////
+      }
+      else {
+    */
 
-      d += c; //Collect characters to string
-      int e = d.toInt(); //Convert received string to integer
-      Serial.print(e);
-      d = ""; //reset d
-      Serial.println();
-      delay(1000);
-    }
-    
-  
+    //// Read weightsensors ////
+
+    d += c; //Collect characters to string
+    int e = d.toInt(); //Convert received string to integer
+    Serial.print(e);
+    d = ""; //reset d
+    Serial.println();
+    delay(1000);
+  }
+
+
 
   ///////////////// Interpretation of I2C weight inputs /////////////////
 
@@ -369,8 +381,8 @@ void loop(void) {
   if (mixingstatus == HIGH && mixingMass < mixingMassMin) {
     for (int t = 0; t <= 4; t++) {
       //char irecipe [4];
-     // char *message = &irecipe[0];
-      
+      // char *message = &irecipe[0];
+
       //dtostrf(recipe[t], 4, 0, irecipe[t]);
       Wire.beginTransmission(8); /* begin with device address 8 */
       Wire.write(static_cast<byte>(recipe[t]));  /* sends string */
@@ -382,9 +394,9 @@ void loop(void) {
 
   //Flame detection
   Flame = digitalRead(flamePin);
-  
+
   //If Flame is ON, turn ledRED and write "Fire" on OLED
-  if (Flame == LOW)
+  if (Flame == HIGH)
   {
     digitalWrite(ledRED, HIGH);
     digitalWrite(ledGREEN, LOW);
@@ -421,5 +433,4 @@ void loop(void) {
     delay(10);
 
   }
-
 }
