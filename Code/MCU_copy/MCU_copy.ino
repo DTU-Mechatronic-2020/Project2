@@ -20,6 +20,7 @@
 #include <string>
 #include<iostream>
 
+bool mixingStatus = false;
 
 char c;
 int e;
@@ -205,6 +206,9 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     oilrcpS = String(oilrcp);
     oilrcpS.toCharArray(pumpe5, 5);
 
+
+    mixingStatus = true;
+
     Serial.print(pumpe5);
   }
 
@@ -219,40 +223,9 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     Serial.print(payload);
   }
 
-  ///////////////////////// REFILL CONFIGURATION /////////////////////////
 
-  if (topic == "Refill") {
-    // Nulstiller payload, endhour og endmin variablen så forloopet ikke appender til en allerede eksisterende definationer
-    payload = "";
-    for (int i = 0; i < length; i++) {
-      payload += (char)byteArrayPayload[i];
-    }
-    Serial.println(payload);
-    if (payload == "ON") {
-      mixingstatus = HIGH;
-    }
-    else if (payload == "OFF") {
-      mixingstatus = LOW;
-    }
-  }
 
-  ///////////////////////// DISPENSE CONFIGURATION /////////////////////////
 
-  if (topic == "Dispense") {
-    // Nulstiller payload, endhour og endmin variablen så forloopet ikke appender til en allerede eksisterende definationer
-    payload = "";
-    for (int i = 0; i < length; i++) {
-      payload += (char)byteArrayPayload[i];
-    }
-    if (payload == "ON") {
-      dispensingstatus = HIGH;
-    }
-    else if (payload == "OFF") {
-      dispensingstatus = LOW;
-    }
-    Serial.println(payload);
-    //client.publish("RecievedEndTime", String(payload).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
   /*
     char ethanolrcpchar[3] = {ethanolrcp};
     char waterrcpchar[3] = {waterrcp};
@@ -390,12 +363,13 @@ void loop() {
   }
 
   /////////////////// Write function /////////////////
-  if (mixingstatus == HIGH && mixingMass < mixingMassMin) {
+  if (mixingStatus == true) {
     for (int t = 0; t <= 4; t++) {
       Wire.beginTransmission(8); // begin with device address 8 //
       Wire.write(static_cast<char*>(recipe[t]));  // sends string //
       Serial.println(recipe[t]);
       Wire.endTransmission();  // stop transmitting //
+      mixingStatus = false;
     }
   }
 
