@@ -1,8 +1,9 @@
 // This code has been made for the course Mechatronics engineering design F20.
 // The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
 
-// Function that controls and changes the OLED screen, aswell as uses an weather API.
+// Function that controls and changes the OLED screen, as well as uses an weather API. This screen will be the default screen.
 void OLEDStandard() {
+  // Most of this code is reused from our project 2.
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
     HTTPClient http; //Declare an object of class HTTPClient
 
@@ -66,7 +67,7 @@ void OLEDStandard() {
 }
 
 
-void dispensing () {
+void dispensing () { //When the machine is dispensing to the user, the screen should change to "dispensing" and pause the script while the pump is dispensing.
 
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_crox5tb_tr);
@@ -81,17 +82,16 @@ void dispensing () {
   u8g2.print("Done!");
   u8g2.sendBuffer();
   digitalWrite(ledGREEN, LOW);
-  delay(500);
+  delay(800);
   u8g2.clearBuffer();
 
 
 }
 
 
-void flamesensor () {
-  digitalWrite(ledRED, HIGH);
+void flamesensor () { //In a case of fire, the red LED should turn on and the OLED should display a warning message.
+  digitalWrite(ledRED, HIGH); 
   digitalWrite(ledGREEN, LOW);
-
   u8g2.clearBuffer();          // clear the internal memory
   u8g2.setFont(u8g2_font_crox5tb_tr); // choose a suitable font
   u8g2.drawStr(0, 30, "!!DANGER!!"); // write something to the internal memory
@@ -103,7 +103,7 @@ void flamesensor () {
 }
 
 
-void mixingScreen() {
+void mixingScreen() { // When the mixingprocess is undertaking, the OLED should communicate this to the users.
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_crox5tb_tr);
   u8g2.setCursor(0, 30);

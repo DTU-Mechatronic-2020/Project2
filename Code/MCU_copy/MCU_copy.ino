@@ -218,10 +218,6 @@ void loop() {
       dispensing ();
     }
     else { //If not, the values should considered to be the current values of the weights
-      Serial.print("d1 is: ");
-      Serial.println(d1);
-      Serial.print("d2 is: ");
-      Serial.println(d2);
       e1 = d1.toInt(); //Convert received string to integer
       e2 = d2.toInt(); //Convert received string to integer
 
@@ -240,16 +236,6 @@ void loop() {
       int ethanolMass = e2;
       client.publish("Weight 2", String(e2).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
     }
-
-    Serial.print("e1 is: ");
-    Serial.println(e1);
-    Serial.print("e2 is: ");
-    Serial.println(e2);
-    Serial.print("The weight of mixing chamber 1 is: ");
-    Serial.println(e1);
-
-    Serial.print("The weight of mixing chamber 2 is: ");
-    Serial.println(e2);
   }
 
   d = ""; //reset d
@@ -267,17 +253,19 @@ void loop() {
     for (int t = 0; t <= 4; t++) {
       Wire.beginTransmission(8); // begin with device address 8 //
       Wire.write(static_cast<char*>(recipe[t]));  // sends string //
-      Serial.println(recipe[t]);
       Wire.endTransmission();  // stop transmitting //
-      mixingStatus = 0;
+      mixingStatus = 0; // Sets mixingStatus to 0, to avoid spamming the Arduino with data
     }
   }
 
-  ///////////////////////// MQTT LOOP FUNCTION /////////////////////
-  if (mixing == 1 && flamePin == LOW) {
+
+  if (mixing == 1 && flamePin == LOW) { // When the mixing has started, the OLED should change its display
     mixingScreen();
 
   }
+
+  ///////////////////////// MQTT LOOP FUNCTION /////////////////////
+
 
 
 
@@ -294,7 +282,7 @@ void loop() {
   //If Flame is ON, turn ledRED and write "Fire" on OLED
   if (Flame == HIGH)
   {
-    flamesensor ();
+    flamesensor (); // When there's a fire before the sensor, the OLED should change to warn the users
   }
   else {
     digitalWrite(ledRED, LOW);

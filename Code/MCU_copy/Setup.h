@@ -1,7 +1,7 @@
 // This code has been made for the course Mechatronics engineering design F20.
 // The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
 
-// Defining pins, variables and more. 
+// Defining pins, variables and more.
 
 
 
@@ -56,14 +56,10 @@ static int mixingStatus = 0;
 
 
 
-//FLAME SENSOR
-const int flamePin = D8;
+
 int Flame = LOW;
 
-//LED'er
 
-int ledRED = D6;
-int ledGREEN = D7;
 
 char pumpe1[5];
 char pumpe2[5];
@@ -85,7 +81,11 @@ char* pump5 = pumpe5;
 
 char *recipe[5] = {pump1, pump2, pump3, pump4, pump5};
 /////////////////////////////////////// Pin Setup ///////////////////////////////////////
-
+//FLAME SENSOR
+const int flamePin = D8;
+//LED'er
+int ledRED = D6;
+int ledGREEN = D7;
 
 /////////////////////////////////////// Millis Setup ///////////////////////////////////////
 unsigned long time_now = 0;
