@@ -207,7 +207,7 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     oilrcpS.toCharArray(pumpe5, 5);
 
 
-    mixingStatus = true;
+
 
     Serial.print(pumpe5);
   }
@@ -222,6 +222,11 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     String Machinenr = payload;//
     Serial.print(payload);
   }
+  Serial.println("Mixingstatus is: ");
+  Serial.print(mixingStatus);
+
+
+
 
 
 
@@ -275,102 +280,64 @@ void loop() {
   }
 
   /////////////////// Read function //////////////////
+
+  dispensing ();
+
   Wire.requestFrom(8, 5); // request & read data of size 4 from slave //
   while (Wire.available()) {
     char c = Wire.read(); //Read charachters to c
-    Serial.println(c);
 
     //// Read weightsensors ////
     d += c; //Collect characters to string
-    int e = d.toInt(); //Convert received string to integer
-    Serial.println("The weight of mixing chamber is: ");
-    Serial.println(e);
-
-    Serial.println();
-
-    //Her skal den indlæse signalet, som Arduino-koden sender ved dispensering
+  }
+  int e = d.toInt(); //Convert received string to integer
+  Serial.print("The weight of mixing chamber is: ");
+  Serial.println(e);
 
 
-    if (c == 1 ) {
-      digitalWrite(ledGREEN, HIGH);
-      u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
-      u8g2.sendBuffer();          // transfer internal memory to the display
-      delay(3000);
-      digitalWrite(ledGREEN, LOW);
-    }
+  //Her skal den indlæse signalet, som Arduino-koden sender ved dispensering
 
+  if (e == 30000 ) {
+    digitalWrite(ledGREEN, HIGH);
+    u8g2.clearBuffer();          // clear the internal memory
+    u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+    u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
+    u8g2.sendBuffer();          // transfer internal memory to the display
 
+    digitalWrite(ledGREEN, LOW);
   }
   Serial.println(d);
   d = ""; //reset d
 
 
+
+
   ///////////////// Interpretation of I2C weight inputs /////////////////
 
   //Weight 1
-  if (2000 >= e && e > 1000) {
+  if (20000 >= e && e > 10000) {
     e = e - 1000;
     int mixingMass = e;
     client.publish("Weight 1", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
   //Weight 2
-  else if (3000 >= e && e > 2000) {
+  else if (30000 >= e && e > 20000) {
     e = e - 2000;
     int ethanolMass = e;
     client.publish("Weight 2", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
   }
 
-  //Weight 3
-  else if (4000 >= e && e > 3000) {
-    e = (e - 3000);
-    int waterMass = e;
-    client.publish("Weight 3", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
+  // This would have been recreated for the reamining 4 weights, had they been working...
 
-  //Weight 4
-  else if (5000 >= e && e > 4000) {
-    e = e - 4000;
-    int glycerinMass = e;
-    client.publish("Weight 4", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
+  e = 0;
 
-  //Weight 5
-  else if (5000 >= e && e > 4000) {
-    e = e - 4000;
-    int H2O2Mass = e;
-    client.publish("Weight 5", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
-
-  //Weight 6
-  else if (6000 >= e && e > 5000) {
-    e = e - 5000;
-    int oilMass = e;
-    client.publish("Weight 6", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
-
-  int e = 0;
-
-
-
+  /////////////////// Write function /////////////////
   for (int t = 0; t <= 4; t++) {
     Wire.beginTransmission(8); // begin with device address 8 //
     Wire.write(static_cast<char*>(recipe[t]));  // sends string //
     Serial.println(recipe[t]);
     Wire.endTransmission();  // stop transmitting //
-  }
-
-  /////////////////// Write function /////////////////
-  if (mixingStatus == true) {
-    for (int t = 0; t <= 4; t++) {
-      Wire.beginTransmission(8); // begin with device address 8 //
-      Wire.write(static_cast<char*>(recipe[t]));  // sends string //
-      Serial.println(recipe[t]);
-      Wire.endTransmission();  // stop transmitting //
-      mixingStatus = false;
-    }
   }
 
 
@@ -397,32 +364,6 @@ void loop() {
       u8g2.drawStr(0, 10, "FIRE guys, run!!"); // write something to the internal memory
       u8g2.sendBuffer();          // transfer internal memory to the display
       delay(10);
-    }
+    }*/
 
-    //When dispensing
-    else if (distance < 15)
-    {
-      digitalWrite(ledRED, LOW);
-      digitalWrite(ledGREEN, HIGH);
-
-      u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
-      u8g2.sendBuffer();          // transfer internal memory to the display
-      delay(10);
-    }
-
-    // If there is no fire and no dispensing, write nothing on the OLED and turn OFF the LED's
-    else
-    {
-      digitalWrite(ledRED, LOW);
-      digitalWrite(ledGREEN, LOW);
-      u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      u8g2.drawStr(0, 10, ""); // write something to the internal memory
-      u8g2.sendBuffer();          // transfer internal memory to the display
-      delay(10);
-
-    }
-  */
 }

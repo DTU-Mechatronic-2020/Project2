@@ -68,8 +68,8 @@ void OLEDWeather() {
 
 void dispensing () {
   u8g2.clearBuffer();
-  u8g2.setFont(u8g2_font_maniac_tf);
-  u8g2.setCursor(20, 40);
+  u8g2.setFont(u8g2_font_crox5tb_tr);
+  u8g2.setCursor(0, 40);
   u8g2.print("Dispensing...");
   u8g2.sendBuffer();
 }
