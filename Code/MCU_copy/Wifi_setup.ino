@@ -1,5 +1,5 @@
 // This code has been made for the course Mechatronics engineering design F20.
-// The code has been made by Group 8 for the final project of the course, Project 3 - F20 - Corona (Final project)
+// The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
 
 /////// OPSÆTNING AF WIFI-FORBINDELSE  ///////////
 

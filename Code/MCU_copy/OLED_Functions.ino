@@ -1,8 +1,8 @@
 // This code has been made for the course Mechatronics engineering design F20.
-// The code has been made by Group 8 for the second project of the course, Project 2 - IoT
+// The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
 
 // Function that controls and changes the OLED screen, aswell as uses an weather API.
-void OLEDWeather() {
+void OLEDStandard() {
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
     HTTPClient http; //Declare an object of class HTTPClient
 
@@ -58,7 +58,7 @@ void OLEDWeather() {
       u8g2.print("Maskine nr: ");
       u8g2.print(Machinenr);
       u8g2.setCursor(0, 50);
-      u8g2.print("Ready to fill");
+      u8g2.print("Ready to dispense");
       u8g2.sendBuffer();          // transfer internal memory to the display
     }
     http.end(); //Close connection
@@ -67,9 +67,37 @@ void OLEDWeather() {
 
 
 void dispensing () {
+
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_crox5tb_tr);
   u8g2.setCursor(0, 40);
   u8g2.print("Dispensing...");
   u8g2.sendBuffer();
+  digitalWrite(ledGREEN, HIGH);
+  delay(3000);
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_crox5tb_tr);
+  u8g2.setCursor(0, 40);
+  u8g2.print("Done!");
+  u8g2.sendBuffer();
+  digitalWrite(ledGREEN, LOW);
+  delay(500);
+  u8g2.clearBuffer();
+
+
+}
+
+
+void flamesensor () {
+  digitalWrite(ledRED, HIGH);
+  digitalWrite(ledGREEN, LOW);
+
+  u8g2.clearBuffer();          // clear the internal memory
+  u8g2.setFont(u8g2_font_crox5tb_tr); // choose a suitable font
+  u8g2.drawStr(0, 30, "!!DANGER!!"); // write something to the internal memory
+  u8g2.drawStr(0, 50, "!!!FIRE!!!"); // write something to the internal memory
+  u8g2.sendBuffer();          // transfer internal memory to the display
+  delay(10);
+
+
 }

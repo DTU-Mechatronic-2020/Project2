@@ -1,5 +1,5 @@
-// This code has been made for the course Mechatronics engineering design F20. 
-// The code has been made by Group 8 for the second project of the course, Project 3 - IoT  
+// This code has been made for the course Mechatronics engineering design F20.
+// The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
 
 // Defining pins, variables and more. 
 
@@ -34,6 +34,7 @@ int fillweight;
 /////////////////////////////////////// Millis Setup ///////////////////////////////////////
 int tenseconds = 10000;
 unsigned long time_now = 0;
+unsigned long dispense_time = 0;
 
 
 /////////////////////////////////////// WiFi og OLED definationer ///////////////////////////////////////

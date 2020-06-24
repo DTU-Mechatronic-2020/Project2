@@ -1,3 +1,6 @@
+// This code has been made for the course Mechatronics engineering design F20.
+// The code has been made by Group 8 for the final project of the course, Project 3 - Corona (Final project)
+
 
 // Import af biblioteker
 #include <Arduino.h>
@@ -20,11 +23,16 @@
 #include <string>
 #include<iostream>
 
-bool mixingStatus = false;
+static int mixingStatus = 0;
 
+// values needed to read weight sensors
 char c;
-int e;
+int e1;
+int e2;
 String d;
+String d1;
+String d2;
+
 String Machinenr;
 
 static int ethanolrcp;
@@ -41,19 +49,13 @@ int oilMass;
 
 int mixingMass;
 int mixingMassMin;
-/*
-  char* WhatIsTheWeight;
-*/
-//int recipe[5];
+
+
 int distance;
 
-//OLED
-//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);  // Adafruit ESP8266/32u4/ARM Boards + FeatherWing OLED
-//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ D1, /* data=*/ D2);   // pin remapping with ESP8266 HW I2C
-//U8G2_SSD1306_128X32_WINSTAR_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE, /* clock=*/ SCL, /* data=*/ SDA);   // pin remapping with ESP8266 HW I2C
 //FLAME SENSOR
-const int flamePin = D5;
-int Flame = HIGH;
+const int flamePin = D8;
+int Flame = LOW;
 
 //LED'er
 
@@ -77,7 +79,6 @@ char* pump2 = pumpe2;
 char* pump3 = pumpe3;
 char* pump4 = pumpe4;
 char* pump5 = pumpe5;
-
 
 char *recipe[5] = {pump1, pump2, pump3, pump4, pump5};
 
@@ -120,17 +121,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
   Serial.print(topic);
   Serial.println("] ");
 
-  /*String payloada;
-    payloada = String(byteArrayPayload);
-    Serial.print("Message payload is: ");
-    Serial.print(payloada);
-  */
-  // Konverterer den indkomne besked (payload) fra en array til en string:
-  // Topic == Kraftsensor
   payload = ""; // Nulstil payload variablen så forloopet ikke appender til en allerede eksisterende payload
 
 
-  /////////////////////////////// INGREDIENTS SETUP ///////////////////////////////
+  //////////////////////////////////////////////////// INGREDIENTS SETUP //////////////////////////////////////////////////////////////
 
 
   ///////////////////////// ETHANOL CONFIGURATION /////////////////////////
@@ -202,12 +196,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
+    mixingStatus = 1;
     oilrcp = payload.toInt() + 5000; //Cryptation for I2C bus
     oilrcpS = String(oilrcp);
     oilrcpS.toCharArray(pumpe5, 5);
-
-
-
 
     Serial.print(pumpe5);
   }
@@ -221,30 +213,11 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
     }
     String Machinenr = payload;//
     Serial.print(payload);
+
+    // In the ideal setup there would have been more than one machine, and this value Machinenr would have decided the slave addresses
+
   }
-  Serial.println("Mixingstatus is: ");
-  Serial.print(mixingStatus);
-
-
-
-
-
-
-
-  /*
-    char ethanolrcpchar[3] = {ethanolrcp};
-    char waterrcpchar[3] = {waterrcp};
-    char glycerinrcpchar[3] = {glycerinrcp};
-    char brintoveriltercpchar[3] = {brintoveriltercp};
-    char oilrcpchar[3] = {oilrcp};
-
-
-
-    int recipe[5] = {ethanolrcpchar[3], waterrcpchar[3], glycerinrcpchar[3], brintoveriltercpchar[3], oilrcpchar[3]};
-  */
 }
-
-
 
 ///////// CALLBACK SLUT /////////
 
@@ -275,71 +248,91 @@ void setup() {
 
 
 void loop() {
-  for (int t = 0; t < 5; t++) {
-    Serial.println(recipe[t]);
+
+  /////////////////// Read function I2C //////////////////
+  if (millis() >= time_now + 1000) {
+    time_now += 1000;
+    Serial.println("One second has passed");
+    for (int t = 0; t < 5; t++) {
+      Serial.println(recipe[t]);
+    }
+    Wire.requestFrom(8, 8); // request & read data of size 4 from slave //
+    int f = 0;
+    while (Wire.available()) {
+      char c = Wire.read(); //Read charachters to c
+      d += c;
+      f ++;
+      Serial.print("F is: ");
+      Serial.println(f);
+
+      //// Seperate the input to two seperate weight sensors ////
+      if (f < 5) {
+        d1 += c; //Collect characters to string
+      }
+      else if (f >= 5) {
+        d2 += c;
+      }
+    }
+
+    if (d1 == "3000" && flamePin == LOW) {
+      dispense_time = millis();
+      dispensing ();
+    }
+    else {
+      Serial.print("d1 is: ");
+      Serial.println(d1);
+      Serial.print("d2 is: ");
+      Serial.println(d2);
+      e1 = d1.toInt(); //Convert received string to integer
+      e2 = d2.toInt(); //Convert received string to integer
+
+
+      ///////////////// Interpretation of I2C weight inputs /////////////////
+
+      //Weight 1
+      e1 = e1 - 1000;
+
+      int mixingMass = e1;
+      client.publish("Weight 1", String(e1).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+
+      //Weight 2
+      e2 = e2 - 2000;
+
+      int ethanolMass = e2;
+      client.publish("Weight 2", String(e2).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+    }
+
+    Serial.print("e1 is: ");
+    Serial.println(e1);
+    Serial.print("e2 is: ");
+    Serial.println(e2);
+    Serial.print("The weight of mixing chamber 1 is: ");
+    Serial.println(e1);
+
+    Serial.print("The weight of mixing chamber 2 is: ");
+    Serial.println(e2);
   }
 
-  /////////////////// Read function //////////////////
-
-  dispensing ();
-
-  Wire.requestFrom(8, 5); // request & read data of size 4 from slave //
-  while (Wire.available()) {
-    char c = Wire.read(); //Read charachters to c
-
-    //// Read weightsensors ////
-    d += c; //Collect characters to string
-  }
-  int e = d.toInt(); //Convert received string to integer
-  Serial.print("The weight of mixing chamber is: ");
-  Serial.println(e);
-
-
-  //Her skal den indlæse signalet, som Arduino-koden sender ved dispensering
-
-  if (e == 30000 ) {
-    digitalWrite(ledGREEN, HIGH);
-    u8g2.clearBuffer();          // clear the internal memory
-    u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-    u8g2.drawStr(0, 10, "Dispensing"); // write something to the internal memory
-    u8g2.sendBuffer();          // transfer internal memory to the display
-
-    digitalWrite(ledGREEN, LOW);
-  }
-  Serial.println(d);
   d = ""; //reset d
+  d1 = "";
+  d2 = "";
 
+  /*
 
+    This would have been recreated for the reamining 4 weights, had they been working...
 
+  */
 
-  ///////////////// Interpretation of I2C weight inputs /////////////////
-
-  //Weight 1
-  if (20000 >= e && e > 10000) {
-    e = e - 1000;
-    int mixingMass = e;
-    client.publish("Weight 1", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
+  /////////////////// Write function I2C /////////////////
+  if (mixingStatus == 1) {
+    for (int t = 0; t <= 4; t++) {
+      Wire.beginTransmission(8); // begin with device address 8 //
+      Wire.write(static_cast<char*>(recipe[t]));  // sends string //
+      Serial.println(recipe[t]);
+      Wire.endTransmission();  // stop transmitting //
+      mixingStatus = 0;
+    }
   }
-
-  //Weight 2
-  else if (30000 >= e && e > 20000) {
-    e = e - 2000;
-    int ethanolMass = e;
-    client.publish("Weight 2", String(e).c_str()); // Publish besked fra MCU til et valgt topic. Husk at subscribe til topic'et i NodeRed.
-  }
-
-  // This would have been recreated for the reamining 4 weights, had they been working...
-
-  e = 0;
-
-  /////////////////// Write function /////////////////
-  for (int t = 0; t <= 4; t++) {
-    Wire.beginTransmission(8); // begin with device address 8 //
-    Wire.write(static_cast<char*>(recipe[t]));  // sends string //
-    Serial.println(recipe[t]);
-    Wire.endTransmission();  // stop transmitting //
-  }
-
 
   ///////////////////////// MQTT LOOP FUNCTION /////////////////////
 
@@ -348,22 +341,15 @@ void loop() {
   }
   client.loop();
 
-  /*                FLAME SENSOR AND OLED                 */
-  /*
-    //Flame detection
-    Flame = digitalRead(flamePin);
+  ////////////////// FLAME SENSOR AND OLED /////////////////////
 
-    //If Flame is ON, turn ledRED and write "Fire" on OLED
-    if (Flame == HIGH)
-    {
-      digitalWrite(ledRED, HIGH);
-      digitalWrite(ledGREEN, LOW);
+  //Flame detection
+  Flame = digitalRead(flamePin);
 
-      u8g2.clearBuffer();          // clear the internal memory
-      u8g2.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-      u8g2.drawStr(0, 10, "FIRE guys, run!!"); // write something to the internal memory
-      u8g2.sendBuffer();          // transfer internal memory to the display
-      delay(10);
-    }*/
-
+  //If Flame is ON, turn ledRED and write "Fire" on OLED
+  if (Flame == HIGH)
+  {
+    flamesensor ();
+  }
+  digitalWrite(ledRED, LOW);
 }
