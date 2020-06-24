@@ -35,7 +35,7 @@ String d;
 String d1;
 String d2;
 
-String Machinenr;
+String Machinenr ="1";
 
 static int ethanolrcp;
 static int waterrcp;

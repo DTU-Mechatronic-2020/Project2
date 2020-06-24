@@ -90,14 +90,14 @@ void dispensing () { //When the machine is dispensing to the user, the screen sh
 
 
 void flamesensor () { //In a case of fire, the red LED should turn on and the OLED should display a warning message.
-  digitalWrite(ledRED, HIGH); 
+  digitalWrite(ledRED, HIGH);
   digitalWrite(ledGREEN, LOW);
   u8g2.clearBuffer();          // clear the internal memory
   u8g2.setFont(u8g2_font_crox5tb_tr); // choose a suitable font
   u8g2.drawStr(0, 30, "!!DANGER!!"); // write something to the internal memory
   u8g2.drawStr(0, 50, "!!!FIRE!!!"); // write something to the internal memory
   u8g2.sendBuffer();          // transfer internal memory to the display
-  delay(10);
+
 
 
 }

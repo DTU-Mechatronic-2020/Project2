@@ -187,14 +187,16 @@ void loop() {
 
   /////////////////// UPDATE OLED SCREEN //////////////////
 
-  if (millis() >= update_time + 5000 && d1 != "3000" && flamePin == LOW && mixingStatus == 0) { //Every five seconds, if there isn't another screen being run, the OLED should update itself.
+  if (millis() >= update_time + 5000 && d1 != "3000") { //Every five seconds, if there isn't another screen being run, the OLED should update itself.
     update_time += 5000;
     OLEDStandard();
+
+
   }
 
   /////////////////// Read function I2C //////////////////
-  if (millis() >= time_now + 1000) {
-    time_now += 1000;
+  if (millis() >= time_now + 100) {
+    time_now += 100;
     Wire.requestFrom(8, 8); // request & read data of size 4 from slave //
     int f = 0;
     while (Wire.available()) {
@@ -213,9 +215,10 @@ void loop() {
 
     /////////////////// Reads and converts data //////////////////
 
-    if (d1 == "3000" && flamePin == LOW) { //If the message is "3000", the OLED should display dispensing
+    if (d1 == "3000") { //If the message is "3000", the OLED should display dispensing
       dispense_time = millis();
-      dispensing ();
+      dispensing();
+
     }
     else { //If not, the values should considered to be the current values of the weights
       e1 = d1.toInt(); //Convert received string to integer
