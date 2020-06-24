@@ -23,65 +23,6 @@
 #include <string>
 #include<iostream>
 
-static int mixingStatus = 0;
-
-// values needed to read weight sensors
-char c;
-int e1;
-int e2;
-String d;
-String d1;
-String d2;
-
-String Machinenr;
-
-static int ethanolrcp;
-static int waterrcp;
-static int glycerinrcp;
-static int brintoveriltercp;
-static int oilrcp;
-
-int ethanolMass;
-int waterMass;
-int glycerinMass;
-int brinoverilteMass;
-int oilMass;
-
-int mixingMass;
-int mixingMassMin;
-
-
-int distance;
-
-//FLAME SENSOR
-const int flamePin = D8;
-int Flame = LOW;
-
-//LED'er
-
-int ledRED = D6;
-int ledGREEN = D7;
-
-char pumpe1[5];
-char pumpe2[5];
-char pumpe3[5];
-char pumpe4[5];
-char pumpe5[5];
-
-String ethanolrcpS;
-String waterrcpS;
-String glycerinrcpS;
-String brintoveriltercpS;
-String oilrcpS;
-
-char* pump1 = pumpe1;
-char* pump2 = pumpe2;
-char* pump3 = pumpe3;
-char* pump4 = pumpe4;
-char* pump5 = pumpe5;
-
-char *recipe[5] = {pump1, pump2, pump3, pump4, pump5};
-
 
 
 
@@ -135,11 +76,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
-    ethanolrcp = payload.toInt() + 1000; //Cryptation for I2C bus
+    ethanolrcp = payload.toInt() + 1000; //Cryptation to be used for I2C bus
     ethanolrcpS = String(ethanolrcp);
     ethanolrcpS.toCharArray(pumpe1, 5);
 
-    Serial.println(pumpe1);
   }
 
   ///////////////////////// WATER CONFIGURATION /////////////////////////
@@ -151,11 +91,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
-    waterrcp = payload.toInt() + 2000; //Cryptation for I2C bus
+    waterrcp = payload.toInt() + 2000; //Cryptation to be used for I2C bus
     waterrcpS = String(waterrcp);
     waterrcpS.toCharArray(pumpe2, 5);
 
-    Serial.println(pumpe2);
   }
 
   ///////////////////////// GLYCERIN CONFIGURATION /////////////////////////
@@ -166,11 +105,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
-    glycerinrcp = payload.toInt() + 3000; //Cryptation for I2C bus
+    glycerinrcp = payload.toInt() + 3000; //Cryptation to be used for I2C bus
     glycerinrcpS = String(glycerinrcp);
     glycerinrcpS.toCharArray(pumpe3, 5);
 
-    Serial.print(pumpe3);
   }
 
   ///////////////////////// H2O2 CONFIGURATION /////////////////////////
@@ -181,11 +119,10 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
-    brintoveriltercp = payload.toInt() + 4000; //Cryptation for I2C bus
+    brintoveriltercp = payload.toInt() + 4000; //Cryptation to be used for I2C bus
     brintoveriltercpS = String(brintoveriltercp);
     brintoveriltercpS.toCharArray(pumpe4, 5);
 
-    Serial.print(pumpe4);
   }
 
   ///////////////////////// Oil CONFIGURATION /////////////////////////
@@ -196,8 +133,9 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
       payload += (char)byteArrayPayload[i];
     }
 
-    mixingStatus = 1;
-    oilrcp = payload.toInt() + 5000; //Cryptation for I2C bus
+    mixingStatus = 1; // When the last ingredient has been configured, the mixingStatus variable becomes 1, which initiated the Wire.Write function that communicates to the Arduino Uno
+    mixing = 1; // Same goes for the mixing variable which enables the OLED screen to display "mixing...." untill the mixing process has been complete.
+    oilrcp = payload.toInt() + 5000; //Cryptation to be used for I2C bus
     oilrcpS = String(oilrcp);
     oilrcpS.toCharArray(pumpe5, 5);
 
@@ -224,14 +162,11 @@ void callback(char* byteArraytopic, byte* byteArrayPayload, unsigned int length)
 int len;
 
 void setup() {
-  Serial.begin(115200); /* begin serial for debug */
+  Serial.begin(115200); // begin serial for debug
   setup_wifi(); // Kører WiFi loopet og forbinder herved.
   client.setServer(mqtt_server, mqtt_port); // Forbinder til mqtt serveren (defineret længere oppe)
   client.setCallback(callback); // Ingangsætter den definerede callback funktion hver gang der er en ny besked på den subscribede "cmd"- topic
 
-  bool mixingstatus = LOW;
-  bool dispensingstatus = LOW;
-  int mixingMassMin = 500;
 
   //Flame
   pinMode(flamePin, INPUT);
@@ -242,43 +177,47 @@ void setup() {
   digitalWrite(ledRED, LOW);
   digitalWrite(ledGREEN, LOW);
   Serial.println("Setup Done");
-  Wire.begin(D3, D4); /* join i2c bus with SDA=D3 and SCL=D4 of NodeMCU */
-  u8g2.begin();
+  Wire.begin(D3, D4); // join i2c bus with SDA=D3 and SCL=D4 of NodeMCU
+  u8g2.begin(); //Starter OLED skærm
 }
 
 
 void loop() {
 
+
+  /////////////////// UPDATE OLED SCREEN //////////////////
+
+  if (millis() >= update_time + 5000 && d1 != "3000" && flamePin == LOW && mixingStatus == 0) { //Every five seconds, if there isn't another screen being run, the OLED should update itself.
+    update_time += 5000;
+    OLEDStandard();
+  }
+
   /////////////////// Read function I2C //////////////////
   if (millis() >= time_now + 1000) {
     time_now += 1000;
-    Serial.println("One second has passed");
-    for (int t = 0; t < 5; t++) {
-      Serial.println(recipe[t]);
-    }
     Wire.requestFrom(8, 8); // request & read data of size 4 from slave //
     int f = 0;
     while (Wire.available()) {
+      mixing = 0;
       char c = Wire.read(); //Read charachters to c
-      d += c;
+      d += c; // Collect characters to a string
       f ++;
-      Serial.print("F is: ");
-      Serial.println(f);
-
       //// Seperate the input to two seperate weight sensors ////
       if (f < 5) {
-        d1 += c; //Collect characters to string
+        d1 += c; // Collect characters to a string
       }
       else if (f >= 5) {
-        d2 += c;
+        d2 += c; // Collect characters to a string
       }
     }
 
-    if (d1 == "3000" && flamePin == LOW) {
+    /////////////////// Reads and converts data //////////////////
+
+    if (d1 == "3000" && flamePin == LOW) { //If the message is "3000", the OLED should display dispensing
       dispense_time = millis();
       dispensing ();
     }
-    else {
+    else { //If not, the values should considered to be the current values of the weights
       Serial.print("d1 is: ");
       Serial.println(d1);
       Serial.print("d2 is: ");
@@ -335,6 +274,12 @@ void loop() {
   }
 
   ///////////////////////// MQTT LOOP FUNCTION /////////////////////
+  if (mixing == 1 && flamePin == LOW) {
+    mixingScreen();
+
+  }
+
+
 
   if (!client.connected()) {
     reconnect();
@@ -351,5 +296,7 @@ void loop() {
   {
     flamesensor ();
   }
-  digitalWrite(ledRED, LOW);
+  else {
+    digitalWrite(ledRED, LOW);
+  }
 }

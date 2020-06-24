@@ -101,3 +101,15 @@ void flamesensor () {
 
 
 }
+
+
+void mixingScreen() {
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_crox5tb_tr);
+  u8g2.setCursor(0, 30);
+  u8g2.print("Mixing...");
+  u8g2.setCursor(0, 50);
+  u8g2.print("Please wait");
+  u8g2.sendBuffer();
+
+}

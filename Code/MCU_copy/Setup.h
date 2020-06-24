@@ -25,16 +25,72 @@ char daysOfTheWeek[7][12] = {"Sunday" , "Monday", "Tuesday", "Wednesday", "Thurs
 
 /////////////////////////////////////// Variabler der bliver brugt igennem koden ///////////////////////////////////////
 String payload; // Definerer variablen 'payload' i det globale scope (payload er navnet på besked-variablen)
-int mixingstatus;
-int dispensingstatus;
-int fillweight;
+
+
+// values needed to read weight sensors
+char c;
+int e1;
+int e2;
+String d;
+String d1;
+String d2;
+
+String Machinenr;
+
+static int ethanolrcp;
+static int waterrcp;
+static int glycerinrcp;
+static int brintoveriltercp;
+static int oilrcp;
+
+int ethanolMass;
+int waterMass;
+int glycerinMass;
+int brinoverilteMass;
+int oilMass;
+
+int mixingMass;
+int mixingMassMin;
+static int mixing = 0;
+static int mixingStatus = 0;
+
+
+
+//FLAME SENSOR
+const int flamePin = D8;
+int Flame = LOW;
+
+//LED'er
+
+int ledRED = D6;
+int ledGREEN = D7;
+
+char pumpe1[5];
+char pumpe2[5];
+char pumpe3[5];
+char pumpe4[5];
+char pumpe5[5];
+
+String ethanolrcpS;
+String waterrcpS;
+String glycerinrcpS;
+String brintoveriltercpS;
+String oilrcpS;
+
+char* pump1 = pumpe1;
+char* pump2 = pumpe2;
+char* pump3 = pumpe3;
+char* pump4 = pumpe4;
+char* pump5 = pumpe5;
+
+char *recipe[5] = {pump1, pump2, pump3, pump4, pump5};
 /////////////////////////////////////// Pin Setup ///////////////////////////////////////
 
 
 /////////////////////////////////////// Millis Setup ///////////////////////////////////////
-int tenseconds = 10000;
 unsigned long time_now = 0;
 unsigned long dispense_time = 0;
+unsigned long update_time = 0;
 
 
 /////////////////////////////////////// WiFi og OLED definationer ///////////////////////////////////////
