@@ -214,6 +214,8 @@ void loop() {
     }
 
     /////////////////// Reads and converts data //////////////////
+    Serial.print("D1 is:");
+    Serial.println(d1);
 
     if (d1 == "3000") { //If the message is "3000", the OLED should display dispensing
       dispense_time = millis();
